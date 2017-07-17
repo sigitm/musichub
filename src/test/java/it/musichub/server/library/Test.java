@@ -9,8 +9,9 @@ import it.musichub.server.library.model.Song;
 public class Test {
 
 	public static void main(String[] args) {
-		String startingDirStr = "N:\\incoming\\##mp3 new";
-		String startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
+//		String startingDirStr = "N:\\incoming\\##mp3 new";
+		String startingDirStr = "D:\\users\\msigismondi.INT\\Desktop";
+//		String startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
 		
 		SongsIndexer si = new SongsIndexer(startingDirStr);
 		
@@ -30,17 +31,17 @@ public class Test {
 		si.refresh();
 
 		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** PARTE 3: refresh parziale ******");
-		si.refresh(startingDirStr2);
+//		try {
+//			TimeUnit.SECONDS.sleep(3);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println("****** PARTE 3: refresh parziale ******");
+//		si.refresh(startingDirStr2);
 		
 		
 //		try {
