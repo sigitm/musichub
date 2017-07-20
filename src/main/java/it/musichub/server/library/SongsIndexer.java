@@ -17,10 +17,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 import com.thoughtworks.xstream.XStream;
 
+import example.binarylight.Main;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;
 import it.musichub.server.library.model.Song;
@@ -30,12 +33,12 @@ import it.musichub.server.library.utils.FileUtils;
 public class SongsIndexer {
 	
 	/*
-	 * TODO: decidere se alla fine preparare mappe di pre-parsing
-	 * (...oppure le si potrebbero preparare alla prima richiesta?)
-	 * per cartella?
-	 * per genere?
-	 * per rating?
-	 * ecc...
+	 * EVOLUZIONI:
+	 * - vedere se si può usare una pila al posto della mappa
+	 * - controllo timerizzato?
+	 * - listener di aggiornamento modifica file e cartelle da filesystem?
+	 * - sistema di configurazione? (per attivare timer e a quale intervallo, listener di aggiornamento, folder di salvataggio...)
+	 * - supporto a più cartelle e più file di configurazione?
 	 */
 
 	private boolean init = false;
@@ -48,6 +51,8 @@ public class SongsIndexer {
 	private static final String LIBRARY_PATH_NAME = System.getProperty("java.io.tmpdir");
 	private static final String LIBRARY_FOLDER_NAME = ".musichub";
 	private static final String LIBRARY_FILE_NAME = "library.xml";
+	
+	private final static Logger logger = Logger.getLogger(SongsIndexer.class);
 	
 	public SongsIndexer(String startingDir) {
 		super();
@@ -79,7 +84,7 @@ public class SongsIndexer {
 			if (notExists)
 				throw new IllegalArgumentException();
 		}catch(Exception e){
-			System.err.println("Error opening directory "+startingDir+" - exception: "+e);
+			logger.error("Error opening directory "+startingDir, e);
 			return;
 		}
 		//normalizzo il percorso
@@ -178,23 +183,22 @@ public class SongsIndexer {
 		File file = new File(path);
 		
 		if (file.exists()){
-			System.out.println("Loading library from file...");
+			logger.info("Loading library from file...");
 
 			Folder loadedStartingFolder = null;
 			try {
 				loadedStartingFolder = (Folder)xstream.fromXML(file);
 			} catch(Exception e) {
-				System.err.println("Error loading library file");
-			    e.printStackTrace(); // this obviously needs to be refined.
+				logger.error("Error loading library file", e);
 			    return;
 			}
 			
 			if (loadedStartingFolder != null){
 				if (startingDir.equals(loadedStartingFolder.getPath())){
 					startingFolder = loadedStartingFolder;
-					System.out.println("... library loaded.");					
+					logger.info("... library loaded.");					
 				}else{
-					System.out.println("Loaded library file is from a different path. Ignored.");
+					logger.warn("Loaded library file is from a different path. Ignored.");
 				}
 			}
 		}
@@ -222,8 +226,7 @@ public class SongsIndexer {
 			file.getParentFile().mkdirs(); //crea la cartella se non esiste già
 			file.createNewFile(); //crea il file se non esiste già
 		} catch (IOException e) {
-			System.err.println("Error opening library file for save");
-			e.printStackTrace(); // this obviously needs to be refined.
+			logger.error("Error opening library file for save", e);
 			return;
 		} 
 		
@@ -236,15 +239,13 @@ public class SongsIndexer {
 		    fos.write(bytes);
 
 		} catch(Exception e) {
-			System.err.println("Error saving library file");
-		    e.printStackTrace(); // this obviously needs to be refined.
+			logger.error("Error saving library file", e);
 		} finally {
 		    if(fos!=null) {
 		        try{ 
 		            fos.close();
 		        } catch (IOException e) {
-		        	System.err.println("Error closing library file after saving");
-		            e.printStackTrace(); // this obviously needs to be refined.
+		        	logger.error("Error closing library file after saving", e);
 		        }
 		    }
 		}
@@ -294,7 +295,7 @@ public class SongsIndexer {
 				Files.walkFileTree(startingFolder.getFile().toPath(), this);
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.err.println("Error parsing directory "+folderToParse.getPath());
+				logger.error("Error parsing directory "+folderToParse.getPath(), e);
 				return;
 			}
 			
@@ -302,19 +303,19 @@ public class SongsIndexer {
 			
 			long endTime = System.currentTimeMillis();
 			
-			System.out.println("Parsing took " + (endTime - startTime) + " milliseconds");
+			logger.info("Parsing took " + (endTime - startTime) + " milliseconds");
 		}
 
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-			System.out.format("Pre-Directory: %s%n", dir);
+			logger.info(String.format("Visiting folder: %s%n", dir));
 			
 			
 			String dirPathStr = Paths.get(dir.toUri()).normalize().toString();
 			
 			if (startingFolder.getPath().equals(dirPathStr)){
 				//caso root
-				System.out.println("Folder "+dirPathStr+" is root");
+				logger.debug("Folder "+dirPathStr+" is root");
 //				currentFolder = startingFolder;
 				currentFoldersMap.put(dirPathStr, new CurrentFolderData(startingFolder));
 			}else{
@@ -322,7 +323,7 @@ public class SongsIndexer {
 				if (startingFolder == null)
 					throw new IllegalStateException("startingFolder cannot be null");
 				
-				System.out.println("Folder "+dirPathStr+" is not root");
+				logger.debug("Folder "+dirPathStr+" is not root");
 				String parentFolderPath = Paths.get(dir.getParent().toUri()).normalize().toString();
 				Folder parentFolderTemplate = FolderFactory.fromFilePath(parentFolderPath, startingFolder.getPath(), null);
 				Folder parentFolder = startingFolder.getFolderRecursive(parentFolderTemplate);
@@ -331,7 +332,7 @@ public class SongsIndexer {
 				
 				Folder folderInCurrentFolder = parentFolder.getFolder(folder);
 				if (folderInCurrentFolder != null){
-					System.out.println("Folder "+dirPathStr+" is already parsed");
+					logger.info("Folder "+dirPathStr+" is already parsed");
 					folder = folderInCurrentFolder;
 				}else{		
 					parentFolder.addFolder(folder);
@@ -368,23 +369,23 @@ public class SongsIndexer {
 			
 			
 			if (attr.isSymbolicLink()) {
-				System.out.format("Symbolic link: %s ", file);
+				logger.debug(String.format("Symbolic link: %s ", file));
 			} else if (attr.isRegularFile()) {
 				String path = Paths.get(file.toUri()).normalize().toString();
 				if (".mp3".equalsIgnoreCase(FileUtils.extractExtension(path))){
-					System.out.format("Song file: %s ", file);
+					logger.info(String.format("Song file: %s ", file));
 					currentFolderData.parsedSongs.add(path);
 					try {
 						Song songInCurrentFolder = currentFolderData.currentFolder.getSong(file);
 						if (songInCurrentFolder != null){ //canzone già presente
 							if (songInCurrentFolder.isSongUpdated()){
 								//la canzone è già stata parsata ed è aggiornata
-								System.out.println("Song is already parsed.");
+								logger.info("Song is already parsed.");
 								return CONTINUE;
 							}
 							//la canzone era già stata parsata ma è stata aggiornata: la cancello
 							currentFolderData.currentFolder.getSongs().remove(songInCurrentFolder);
-							System.out.println("Song was already parsed but is now updated. Removing old version.");
+							logger.info("Song was already parsed but is now updated.");
 						}
 						
 						Song song = SongFactory.fromFilePath(path, startingFolder.getPath());
@@ -392,18 +393,17 @@ public class SongsIndexer {
 						song.setFolder(currentFolderData.currentFolder);
 						
 					} catch (UnsupportedTagException | InvalidDataException | IOException e) {
-						e.printStackTrace();
-						System.err.println("Error parsing "+path);
+						logger.error("Error parsing "+path, e);
 						return CONTINUE;
 					}
 				}else{
-					System.out.format("Ignoring unknown file: %s ", file);
+					logger.debug(String.format("Ignoring unknown file: %s ", file));
 				}
 				
 			} else {
-				System.out.format("Other: %s ", file);
+				logger.debug(String.format("Other: %s ", file));
 			}
-			System.out.println("(" + attr.size() + "bytes)");
+			logger.debug("(" + attr.size() + "bytes)");
 			return CONTINUE;
 		}
 
@@ -416,7 +416,7 @@ public class SongsIndexer {
 			if (!currentFolderData.parseFiles)
 				return CONTINUE;
 			
-			System.out.format("Post-Directory: %s%n", dir);
+			logger.debug(String.format("Ended visiting folder: %s%n", dir));
 
 			//verifico le song presenti per scartare quelle non rilevate in questa esplorazione
 			List<Song> songsToRemove = new ArrayList<>();
@@ -425,7 +425,7 @@ public class SongsIndexer {
 				for (Song song : songs){
 					String path = song.getPath();
 					if (!currentFolderData.parsedSongs.contains(path)){
-						System.out.println("Removing old song "+song.getFilename());
+						logger.debug("Removing old song "+song.getFilename());
 						songsToRemove.add(song);
 					}
 				}
@@ -445,7 +445,7 @@ public class SongsIndexer {
 		// is thrown.
 		@Override
 		public FileVisitResult visitFileFailed(Path file, IOException exc) {
-			System.err.println(exc);
+			logger.error("Visit failed", exc);
 			return CONTINUE;
 		}
 		
