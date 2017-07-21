@@ -18,6 +18,12 @@ import it.musichub.server.library.model.Song;
 
 public class SongsSearch implements Serializable {
 
+	/*
+	 * EVOLUZIONI:
+	 * - non si può restituire le song originali perchè contengono i rami. Clonare la Song? Creare un apposito dto?
+	 * - metodi di ricerca più avanzati; vedere sotto
+	 */
+	
 	private Folder folder;
 	private String query;
 	
