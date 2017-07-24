@@ -1,12 +1,10 @@
 package it.musichub.server.library;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -15,52 +13,77 @@ import org.apache.commons.jexl3.MapContext;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
+import it.musichub.server.library.utils.SmartBeanComparator;
+import it.musichub.server.runner.ServiceFactory;
+import it.musichub.server.runner.ServiceFactory.Service;
 
-public class SongsSearch implements Serializable {
+public class SongsSearch implements SearchService {
 
 	/*
 	 * EVOLUZIONI:
+	 * - possibilità di cercare in una subfolder (usare getFolderRecursive?)
+	 * - possibilità di decidere se includere le subFolder o solo la folder corrente
 	 * - non si può restituire le song originali perchè contengono i rami. Clonare la Song? Creare un apposito dto?
 	 * - metodi di ricerca più avanzati; vedere sotto
 	 */
+
+	private JexlEngine jexl = null;
 	
-	private Folder folder;
-	private String query;
+	private IndexerService getIndexerService(){
+		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
+	}
 	
-	private JexlExpression e = null;
-	
-	private static final JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(false).create();
-	
-	public SongsSearch(Folder folder, String query) {
+	public SongsSearch() {
 		super();
-		this.folder = folder;
-		this.query = query;
-		
-		init();
 	}
 
-	private void init(){
+	@Override
+	public void init(){
 	    // Assuming we have a JexlEngine instance initialized in our class named 'jexl':
 	    // Create an expression object for our calculation
 		
-		JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(false).create();
-	    e = jexl.createExpression(query);
+		jexl = new JexlBuilder().cache(512).strict(true).silent(true).create();
 	}
 	
-	private boolean evaluate(Song song){
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public Query createQuery(String query){
+		JexlExpression e = jexl.createExpression(query);
+		return new Query(e);
+	}
+	
+	private static boolean evaluate(Song song, Query query){
 		// populate the context
 	    JexlContext context = new MapContext();
 	    context.set("song", song);
 
 	    // work it out
-	    boolean result = (boolean) e.evaluate(context);
+	    boolean result = (boolean) query.getExpression().evaluate(context);
 	    return result;
 	}
 	
-	
-    public List<Song> execute(){
+	@Override
+    public List<Song> execute(Query query){
+    	//TODO xxxxxxxxxxx PROVVISORIO
+    	Folder folder = getIndexerService().getStartingFolder();
+    	//TODO xxxxxxxxxxx PROVVISORIO
+    	
     	List<Song> searchResult = new ArrayList<Song>();
-    	doVisit(folder, searchResult);
+    	doVisit(folder, query, searchResult);
     	
     	
     	//TODO: test ordinamento
@@ -69,7 +92,7 @@ public class SongsSearch implements Serializable {
     	List<String> reverseOrdering = new ArrayList<>(ordering);
     	Collections.reverse(reverseOrdering); //TODO: va gestito anche l'asc/desc
     	for (String field : reverseOrdering)
-    		Collections.sort(searchResult, new BeanComparator(field));
+    		Collections.sort(searchResult, new SmartBeanComparator(field));
     	
     	//TODO clonare le songs!! altrimenti arrivano tutti i rami!
     	
@@ -77,16 +100,16 @@ public class SongsSearch implements Serializable {
     	return searchResult;
     }
    
-    private void doVisit(Folder folder, List<Song> searchResult){
+    private void doVisit(Folder folder, Query query, List<Song> searchResult){
 		if (folder.getSongs() != null){
 			for (Song song : folder.getSongs()) {
-				if (evaluate(song))
+				if (evaluate(song, query))
 					searchResult.add(song);
 			}
 		}
 		if (folder.getFolders() != null){
 			for (Folder child : folder.getFolders())
-				doVisit(child, searchResult);
+				doVisit(child, query, searchResult);
 		}
     }
     

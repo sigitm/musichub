@@ -2,10 +2,7 @@ package it.musichub.server.library;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,16 +18,21 @@ import org.apache.log4j.Logger;
 
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
-import com.thoughtworks.xstream.XStream;
 
-import example.binarylight.Main;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.library.model.SongFactory;
 import it.musichub.server.library.utils.FileUtils;
+import it.musichub.server.persistence.PersistenceService;
+import it.musichub.server.persistence.ex.FileNotFoundException;
+import it.musichub.server.persistence.ex.LoadException;
+import it.musichub.server.persistence.ex.SaveException;
+import it.musichub.server.runner.MusicHubService;
+import it.musichub.server.runner.ServiceFactory;
+import it.musichub.server.runner.ServiceFactory.Service;
 
-public class SongsIndexer {
+public class SongsIndexer implements IndexerService {
 	
 	/*
 	 * EVOLUZIONI:
@@ -46,11 +48,10 @@ public class SongsIndexer {
 	private String startingDir;
 	private Folder startingFolder;
 	
-	private XStream xstream;
-	
-	private static final String LIBRARY_PATH_NAME = System.getProperty("java.io.tmpdir");
-	private static final String LIBRARY_FOLDER_NAME = ".musichub";
 	private static final String LIBRARY_FILE_NAME = "library.xml";
+	
+	//options TODO
+	private static boolean verbose = false;
 	
 	private final static Logger logger = Logger.getLogger(SongsIndexer.class);
 	
@@ -59,23 +60,19 @@ public class SongsIndexer {
 		this.startingDir = startingDir;
 	}
 	
+	@Override
 	public Folder getStartingFolder() {
 		return startingFolder;
 	}
+	
+	private PersistenceService getPersistenceService(){
+		return (PersistenceService) ServiceFactory.getServiceInstance(Service.persistence);
+	}
 
-
+	@Override
 	public void init(){
 		if (startingDir == null)
 			throw new IllegalArgumentException("startingDir cannot be null");
-		
-		//init xstream
-		xstream = new XStream();
-		XStream.setupDefaultSecurity(xstream);
-		xstream.allowTypeHierarchy(Folder.class);
-		xstream.allowTypeHierarchy(Song.class);
-//		xstream.addPermission(AnyTypePermission.ANY);
-		xstream.alias("folder", Folder.class);
-		xstream.alias("song", Song.class);
 		
 		//init parsing
 		Path startingDirPath = Paths.get(startingDir);
@@ -97,6 +94,7 @@ public class SongsIndexer {
 		init = true;
 	}
 	
+	@Override
 	public void start(){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -107,6 +105,7 @@ public class SongsIndexer {
 		//se ci mettiamo lo scanning automatico, va attivato il servizio...
 	}
 	
+	@Override
 	public void refresh(){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -115,6 +114,7 @@ public class SongsIndexer {
 		parse(startingFolder);
 	}
 	
+	@Override
 	public void refresh(String subFolderPath){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -124,6 +124,7 @@ public class SongsIndexer {
 		parse(startingFolder, subFolder);
 	}
 	
+	@Override
 	public void refresh(String subFolderPath, boolean parseSubFolders){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -133,6 +134,7 @@ public class SongsIndexer {
 		parse(startingFolder, subFolder, parseSubFolders);
 	}
 	
+	@Override
 	public void stop(){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -140,6 +142,7 @@ public class SongsIndexer {
 		//se ci mettiamo lo scanning automatico, va disattivato il servizio...
 	}
 	
+	@Override
 	public void destroy(){
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
@@ -162,93 +165,53 @@ public class SongsIndexer {
 		fp.parse(folderToParse, parseSubFolders);
 	}
 	
-	public List<Song> search(String query){
-		return search(startingFolder, query);
-	}
+//	public List<Song> search(String query){
+//		return search(startingFolder, query);
+//	}
+//	
+//	public List<Song> search(Folder folder, String query){
+//		SongsSearch search = new SongsSearch(folder, query);
+//		List<Song> results = search.execute(); //TODO clonare!!
+//		return results;
+//	}
 	
-	public List<Song> search(Folder folder, String query){
-		SongsSearch search = new SongsSearch(folder, query);
-		List<Song> results = search.execute(); //TODO clonare!!
-		return results;
-	}
 	
-	
-	
-	private static String getLibraryPath(){
-		return LIBRARY_PATH_NAME + File.separator + LIBRARY_FOLDER_NAME + File.separator + LIBRARY_FILE_NAME;
-	}
 	
 	private void loadFromDisk(){
-		String path = getLibraryPath();
-		File file = new File(path);
+		logger.info("Loading library from file...");
 		
-		if (file.exists()){
-			logger.info("Loading library from file...");
-
-			Folder loadedStartingFolder = null;
-			try {
-				loadedStartingFolder = (Folder)xstream.fromXML(file);
-			} catch(Exception e) {
-				logger.error("Error loading library file", e);
-			    return;
-			}
-			
-			if (loadedStartingFolder != null){
-				if (startingDir.equals(loadedStartingFolder.getPath())){
-					startingFolder = loadedStartingFolder;
-					logger.info("... library loaded.");					
-				}else{
-					logger.warn("Loaded library file is from a different path. Ignored.");
-				}
+		Folder loadedStartingFolder = null;
+		try {
+			loadedStartingFolder = getPersistenceService().loadFromDisk(Folder.class, LIBRARY_FILE_NAME);
+		} catch(FileNotFoundException e) {
+			logger.warn("Library file not found. May be first launch.", e);
+		    return;
+		} catch(LoadException e) {
+			logger.error("Error loading library file", e);
+		    return;
+		}
+		
+		if (loadedStartingFolder != null){
+			if (startingDir.equals(loadedStartingFolder.getPath())){
+				startingFolder = loadedStartingFolder;
+				logger.info("... library loaded.");
+			}else{
+				logger.warn("Loaded library file is from a different path. Ignored.");
 			}
 		}
 	}
 	
 	private void saveToDisk(){
-		/**
-		 * TODO
-		 * 
-		 * verificare se ha senso la compressione della libreria.
-		 * 
-		 * anche gli alias andrebbero cambiati?? "f" e "s"
-		 * 
-		 * http://xstream.10960.n7.nabble.com/XStream-data-compression-td3467.html
-		 * https://docs.oracle.com/javase/7/docs/api/java/util/zip/GZIPInputStream.html
-		 * https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.html
-		 * 
-		 */
-		String xml = xstream.toXML(startingFolder);
+		logger.info("Saving library to file...");
 		
-		String path = getLibraryPath();
-		File file = new File(path);
-	
 		try {
-			file.getParentFile().mkdirs(); //crea la cartella se non esiste già
-			file.createNewFile(); //crea il file se non esiste già
-		} catch (IOException e) {
-			logger.error("Error opening library file for save", e);
+			getPersistenceService().saveToDisk(startingFolder, LIBRARY_FILE_NAME);
+		} catch (SaveException e) {
+			logger.error("Error saving library", e);
 			return;
-		} 
-		
-		FileOutputStream fos = null;
-		try {
-			
-		    fos = new FileOutputStream(file, false);
-		    fos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes(StandardCharsets.UTF_8)); //write XML header, as XStream doesn't do that for us
-		    byte[] bytes = xml.getBytes("UTF-8");
-		    fos.write(bytes);
-
-		} catch(Exception e) {
-			logger.error("Error saving library file", e);
-		} finally {
-		    if(fos!=null) {
-		        try{ 
-		            fos.close();
-		        } catch (IOException e) {
-		        	logger.error("Error closing library file after saving", e);
-		        }
-		    }
 		}
+		
+		logger.info("... library saved.");
 	}
 	
 	
@@ -308,7 +271,7 @@ public class SongsIndexer {
 
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-			logger.info(String.format("Visiting folder: %s%n", dir));
+			logger.info(String.format("Indexing folder: %s%n", dir));
 			
 			
 			String dirPathStr = Paths.get(dir.toUri()).normalize().toString();
@@ -397,7 +360,8 @@ public class SongsIndexer {
 						return CONTINUE;
 					}
 				}else{
-					logger.debug(String.format("Ignoring unknown file: %s ", file));
+					if (verbose)
+						logger.debug(String.format("Ignoring unknown file: %s ", file));
 				}
 				
 			} else {
@@ -416,7 +380,7 @@ public class SongsIndexer {
 			if (!currentFolderData.parseFiles)
 				return CONTINUE;
 			
-			logger.debug(String.format("Ended visiting folder: %s%n", dir));
+			logger.debug(String.format("Ended indexing folder: %s%n", dir));
 
 			//verifico le song presenti per scartare quelle non rilevate in questa esplorazione
 			List<Song> songsToRemove = new ArrayList<>();

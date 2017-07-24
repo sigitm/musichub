@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
+import it.musichub.server.runner.ServiceFactory;
+import it.musichub.server.runner.ServiceFactory.Service;
 
 public class Test {
 
@@ -23,11 +25,13 @@ public class Test {
 			e1.printStackTrace();
 		}
 
+		ServiceFactory sf = ServiceFactory.getInstance();
+		sf.addParam("startingDir", startingDirStr);
 		
-		SongsIndexer si = new SongsIndexer(startingDirStr);
+		sf.init();
+		sf.start();
 		
-		si.init();
-		si.start();
+		IndexerService si = (IndexerService) sf.getServiceInstance(Service.indexer);
 		
 		try {
 			TimeUnit.SECONDS.sleep(3);
@@ -80,8 +84,11 @@ public class Test {
 		System.out.println();
 		System.out.println("****** PARTE 4: search ******");
 		
-		String query = "song.artist == 'Ligabue'";
-		List<Song> results = si.search(query);
+		
+		String queryStr = "song.artist == 'Ligabue'";
+		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
+		Query query = ss.createQuery(queryStr);
+		List<Song> results = ss.execute(query);
 		System.out.println("search results:");
 		for (Song song : results)
 			System.out.println(song);
@@ -92,13 +99,23 @@ public class Test {
 		
 		
 		
+		try {
+			TimeUnit.SECONDS.sleep(3);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println();
+		System.out.println();
+		System.out.println();
+		System.out.println("****** FINE ******");
 		
-		si.stop();
+		sf.stop();
 		
 		
 		Folder f = si.getStartingFolder();
 		
-		si.destroy();
+		sf.destroy();
 		
 		
 		
