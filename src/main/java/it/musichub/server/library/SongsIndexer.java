@@ -139,6 +139,8 @@ public class SongsIndexer implements IndexerService {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		
+		saveToDisk();
+		
 		//se ci mettiamo lo scanning automatico, va disattivato il servizio...
 	}
 	
@@ -147,7 +149,7 @@ public class SongsIndexer implements IndexerService {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		
-		saveToDisk();
+
 		startingDir = null;
 		startingFolder = null;
 	}

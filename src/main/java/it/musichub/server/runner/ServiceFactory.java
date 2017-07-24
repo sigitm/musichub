@@ -3,6 +3,7 @@ package it.musichub.server.runner;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,12 @@ public class ServiceFactory implements MusicHubService {
 	}
 	
 	private List<Service> getServiceList(boolean reverse) {
-		return new ArrayList<Service>(getServiceMap().keySet());
+		List<Service> result = new ArrayList<Service>(getServiceMap().keySet());
+		
+		if (reverse)
+			Collections.reverse(result);
+		
+		return result;
 	}
 
 	private void generateServices(){

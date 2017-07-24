@@ -33,19 +33,9 @@ public class Test {
 		
 		IndexerService si = (IndexerService) sf.getServiceInstance(Service.indexer);
 		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** PARTE 2: refresh totale ******");
-		si.refresh();
-
+		//TODO SCOPRIRE PERCHE NON PARTE IL PRIMO PARSING!!!
 		
+//		
 //		try {
 //			TimeUnit.SECONDS.sleep(3);
 //		} catch (InterruptedException e) {
@@ -55,47 +45,60 @@ public class Test {
 //		System.out.println();
 //		System.out.println();
 //		System.out.println();
-//		System.out.println("****** PARTE 3: refresh parziale ******");
-//		si.refresh(startingDirStr2);
-		
-		
+//		System.out.println("****** PARTE 2: refresh totale ******");
+//		si.refresh();
+//
+//		
+////		try {
+////			TimeUnit.SECONDS.sleep(3);
+////		} catch (InterruptedException e) {
+////			// TODO Auto-generated catch block
+////			e.printStackTrace();
+////		}
+////		System.out.println();
+////		System.out.println();
+////		System.out.println();
+////		System.out.println("****** PARTE 3: refresh parziale ******");
+////		si.refresh(startingDirStr2);
+//		
+//		
+////		try {
+////		TimeUnit.SECONDS.sleep(3);
+////	} catch (InterruptedException e) {
+////		// TODO Auto-generated catch block
+////		e.printStackTrace();
+////	}
+////	System.out.println();
+////	System.out.println();
+////	System.out.println();
+////	System.out.println("****** PARTE 4: refresh parziale 2 ******");
+////	si.refresh(startingDirStr, false);
+//		
+//		
+//		
 //		try {
-//		TimeUnit.SECONDS.sleep(3);
-//	} catch (InterruptedException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	}
-//	System.out.println();
-//	System.out.println();
-//	System.out.println();
-//	System.out.println("****** PARTE 4: refresh parziale 2 ******");
-//	si.refresh(startingDirStr, false);
-		
-		
-		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** PARTE 4: search ******");
-		
-		
-		String queryStr = "song.artist == 'Ligabue'";
-		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
-		Query query = ss.createQuery(queryStr);
-		List<Song> results = ss.execute(query);
-		System.out.println("search results:");
-		for (Song song : results)
-			System.out.println(song);
-		
-		
-
-		
+//			TimeUnit.SECONDS.sleep(3);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		System.out.println();
+//		System.out.println();
+//		System.out.println();
+//		System.out.println("****** PARTE 4: search ******");
+//		
+//		
+//		String queryStr = "song.artist == 'Ligabue'";
+//		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
+//		Query query = ss.createQuery(queryStr);
+//		List<Song> results = ss.execute(query);
+//		System.out.println("search results:");
+//		for (Song song : results)
+//			System.out.println(song);
+//		
+//		
+//
+//		
 		
 		
 		
