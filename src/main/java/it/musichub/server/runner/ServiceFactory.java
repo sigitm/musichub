@@ -112,7 +112,7 @@ public class ServiceFactory implements MusicHubService {
 			logger.debug("Starting service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			MusicHubService svc = serviceDefinition.getInstance();
-			svc.init();
+			svc.start();
 			logger.debug("Service "+service.name()+" started");
 		}
 
@@ -126,7 +126,7 @@ public class ServiceFactory implements MusicHubService {
 			logger.debug("Stopping service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			MusicHubService svc = serviceDefinition.getInstance();
-			svc.init();
+			svc.stop();
 			logger.debug("Service "+service.name()+" stopped");
 		}
 
@@ -140,7 +140,7 @@ public class ServiceFactory implements MusicHubService {
 			logger.debug("Destroying service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			MusicHubService svc = serviceDefinition.getInstance();
-			svc.init();
+			svc.destroy();
 			logger.debug("Service "+service.name()+" destroyed");
 		}
 

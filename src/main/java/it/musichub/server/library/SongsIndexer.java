@@ -273,14 +273,15 @@ public class SongsIndexer implements IndexerService {
 
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-			logger.info(String.format("Indexing folder: %s%n", dir));
+			logger.info(String.format("Indexing folder: %s", dir));
 			
 			
 			String dirPathStr = Paths.get(dir.toUri()).normalize().toString();
 			
 			if (startingFolder.getPath().equals(dirPathStr)){
 				//caso root
-				logger.debug("Folder "+dirPathStr+" is root");
+				if (verbose)
+					logger.debug("Folder "+dirPathStr+" is root");
 //				currentFolder = startingFolder;
 				currentFoldersMap.put(dirPathStr, new CurrentFolderData(startingFolder));
 			}else{
@@ -288,7 +289,8 @@ public class SongsIndexer implements IndexerService {
 				if (startingFolder == null)
 					throw new IllegalStateException("startingFolder cannot be null");
 				
-				logger.debug("Folder "+dirPathStr+" is not root");
+				if (verbose)
+					logger.debug("Folder "+dirPathStr+" is not root");
 				String parentFolderPath = Paths.get(dir.getParent().toUri()).normalize().toString();
 				Folder parentFolderTemplate = FolderFactory.fromFilePath(parentFolderPath, startingFolder.getPath(), null);
 				Folder parentFolder = startingFolder.getFolderRecursive(parentFolderTemplate);
@@ -334,11 +336,11 @@ public class SongsIndexer implements IndexerService {
 			
 			
 			if (attr.isSymbolicLink()) {
-				logger.debug(String.format("Symbolic link: %s ", file));
+				logger.debug(String.format("Symbolic link (ignored): %s ", file));
 			} else if (attr.isRegularFile()) {
 				String path = Paths.get(file.toUri()).normalize().toString();
 				if (".mp3".equalsIgnoreCase(FileUtils.extractExtension(path))){
-					logger.info(String.format("Song file: %s ", file));
+					logger.info(String.format("Song file: %s (" + attr.size() + " bytes)", file));
 					currentFolderData.parsedSongs.add(path);
 					try {
 						Song songInCurrentFolder = currentFolderData.currentFolder.getSong(file);
@@ -369,7 +371,7 @@ public class SongsIndexer implements IndexerService {
 			} else {
 				logger.debug(String.format("Other: %s ", file));
 			}
-			logger.debug("(" + attr.size() + "bytes)");
+//			logger.debug("(" + attr.size() + "bytes)");
 			return CONTINUE;
 		}
 
