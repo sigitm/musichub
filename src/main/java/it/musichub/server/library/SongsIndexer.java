@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.apache.log4j.Logger;
 
@@ -28,7 +29,6 @@ import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
-import it.musichub.server.runner.MusicHubService;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceFactory.Service;
 
@@ -224,7 +224,7 @@ public class SongsIndexer implements IndexerService {
 		private Folder startingFolder = null;
 		private Folder folderToParse = null;
 		private boolean parseSubFolders = true;
-		private Map<String, CurrentFolderData> currentFoldersMap = new HashMap<>();
+		private Stack<CurrentFolderData> currentFoldersStack = null;
 		
 		private static class CurrentFolderData{
 			public Folder currentFolder = null;
@@ -254,7 +254,7 @@ public class SongsIndexer implements IndexerService {
 			if (relPath == null)
 				throw new IllegalArgumentException("folderToParse must be a subFolder of startingFolder");
 			
-			currentFoldersMap = new HashMap<>();
+			currentFoldersStack = new Stack<>();
 			
 			try {
 				Files.walkFileTree(startingFolder.getFile().toPath(), this);
@@ -264,7 +264,7 @@ public class SongsIndexer implements IndexerService {
 				return;
 			}
 			
-			currentFoldersMap = null;
+			currentFoldersStack = null;
 			
 			long endTime = System.currentTimeMillis();
 			
@@ -282,8 +282,7 @@ public class SongsIndexer implements IndexerService {
 				//caso root
 				if (verbose)
 					logger.debug("Folder "+dirPathStr+" is root");
-//				currentFolder = startingFolder;
-				currentFoldersMap.put(dirPathStr, new CurrentFolderData(startingFolder));
+				currentFoldersStack.push(new CurrentFolderData(startingFolder));
 			}else{
 				//caso interno
 				if (startingFolder == null)
@@ -304,9 +303,9 @@ public class SongsIndexer implements IndexerService {
 				}else{		
 					parentFolder.addFolder(folder);
 				}
-				currentFoldersMap.put(dirPathStr, new CurrentFolderData(folder));
+				currentFoldersStack.push(new CurrentFolderData(folder));
 			}
-			CurrentFolderData currentFolderData = currentFoldersMap.get(dirPathStr);
+			CurrentFolderData currentFolderData = currentFoldersStack.peek();
 			
 			//escludo il parsing dei file nei rami scorrelati
 			String relPath = FileUtils.getRelativePath(currentFolderData.currentFolder.getFile(), folderToParse.getFile());
@@ -328,8 +327,8 @@ public class SongsIndexer implements IndexerService {
 		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
-			String dirPathStr = Paths.get(file.getParent().toUri()).normalize().toString();
-			CurrentFolderData currentFolderData = currentFoldersMap.get(dirPathStr);
+//			String dirPathStr = Paths.get(file.getParent().toUri()).normalize().toString();
+			CurrentFolderData currentFolderData = currentFoldersStack.peek();
 			
 			if (!currentFolderData.parseFiles)
 				return CONTINUE;
@@ -378,8 +377,8 @@ public class SongsIndexer implements IndexerService {
 		// Print each directory visited.
 		@Override
 		public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
-			String dirPathStr = Paths.get(dir.toUri()).normalize().toString();
-			CurrentFolderData currentFolderData = currentFoldersMap.get(dirPathStr);
+//			String dirPathStr = Paths.get(dir.toUri()).normalize().toString();
+			CurrentFolderData currentFolderData = currentFoldersStack.peek();
 			
 			if (!currentFolderData.parseFiles)
 				return CONTINUE;
@@ -400,7 +399,7 @@ public class SongsIndexer implements IndexerService {
 				currentFolderData.currentFolder.getSongs().removeAll(songsToRemove);
 			}
 			
-			currentFoldersMap.remove(dirPathStr);
+			currentFoldersStack.pop();
 			
 			
 			return CONTINUE;
