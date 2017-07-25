@@ -32,7 +32,7 @@ public class ServiceFactory implements MusicHubService {
 	
 	private Map<String,Object> params = new HashMap<>();
 	
-	public static enum Service {persistence, indexer, search, upnp, ws}
+	public static enum Service {persistence, indexer, search, discovery, ws}
 	
 	public void addParam(String key, Object value){
 		params.put(key, value);

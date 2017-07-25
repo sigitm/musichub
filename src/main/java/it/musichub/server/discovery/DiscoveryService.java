@@ -1,9 +1,9 @@
-package it.musichub.server.upnp;
+package it.musichub.server.discovery;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.runner.MusicHubService;
 
-public interface UpnpService extends MusicHubService {
+public interface DiscoveryService extends MusicHubService {
 
 //	public void refresh();
 //	public void refresh(String subFolderPath);

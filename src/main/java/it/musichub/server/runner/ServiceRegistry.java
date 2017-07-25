@@ -3,6 +3,7 @@ package it.musichub.server.runner;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import it.musichub.server.discovery.DiscoveryServiceImpl;
 import it.musichub.server.library.SongsIndexer;
 import it.musichub.server.library.SongsSearch;
 import it.musichub.server.persistence.PersistenceEngine;
@@ -47,12 +48,14 @@ public class ServiceRegistry {
 		 * persistence: none
 		 * indexer: persistence
 		 * search: indexer
+		 * discovery: XXXXXXXXXXXXXX
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
 		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
 			addArg("startingDir", String.class);
 		}});
 		put(Service.search, new ServiceDefinition(SongsSearch.class));
+		put(Service.discovery, new ServiceDefinition(DiscoveryServiceImpl.class));
 	}};
 	
 }
