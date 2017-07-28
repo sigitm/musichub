@@ -15,7 +15,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 	/**
 	 * Tengo i device in un mio deviceregistry e li aggiorno con il listener
 	 * 
-	 * li tengo tutti, anche i vecchi? 	 ci sarà anche un attributo "online"
+	 * deviceregistry mappa con l'uid come chiave? lo salvo tramite persistence?
+	 * 
+	 * li tengo tutti, anche i vecchi? 	 ci sarà anche un attributo "online" e "lastSeenOnline"
 	 * 
 	 * ...
 	 * 
