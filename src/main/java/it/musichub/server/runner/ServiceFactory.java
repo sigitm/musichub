@@ -1,12 +1,19 @@
 package it.musichub.server.runner;
 
+import java.io.Console;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -87,6 +94,75 @@ public class ServiceFactory implements MusicHubService {
 			
 			logger.debug("Service "+service.name()+" generated");
 		}
+	}
+	
+	public static void main(String[] args) {
+		ServiceFactory.getInstance().newStart();
+	}
+	public void newStart(){
+		//TODO PROVVISORIO
+		String startingDirStr = "D:\\users\\msigismondi.INT\\Desktop";
+		String startingDirStr2 = "D:\\users\\msigismondi.INT\\Desktop";
+		try {
+			if ("SIGIQC".equals(InetAddress.getLocalHost().getHostName())){
+				startingDirStr = "N:\\incoming\\##mp3 new";
+				startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
+			}
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		addParam("startingDir", startingDirStr);
+		
+		
+		
+		
+		
+		
+		init();
+		start();
+		addHook();
+		logger.info("MusicHub Server 0.1 started.");
+		
+		/**
+		 * esperimenti shutdown:
+		 * - "exit"
+		 * - ctrl-c
+		 * - 1 minuto (per prova)
+		 */
+		Console console = System.console();
+		while (true) {
+			String read = console.readLine();
+			if ("exit".equals(read))
+				newShutdown();
+		}
+	}
+	
+	public void newShutdown(){
+		stop();
+		destroy();
+		System.exit(0);
+	}
+	
+	public void addHook() {
+		//esperimento timer
+		Timer timer = new Timer();
+        timer.schedule (new TimerTask() {
+
+            @Override
+            public void run() {
+            	logger.fatal("sono passati 30 sec");
+            	newShutdown();
+            }
+        }, TimeUnit.SECONDS.toMillis(30));
+		
+        
+        //shutdown hook
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				newShutdown();
+			}
+		});
 	}
 	
 	@Override
