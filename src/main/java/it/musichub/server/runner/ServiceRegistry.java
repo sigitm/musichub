@@ -7,10 +7,28 @@ import it.musichub.server.discovery.DiscoveryServiceImpl;
 import it.musichub.server.library.SongsIndexer;
 import it.musichub.server.library.SongsSearch;
 import it.musichub.server.persistence.PersistenceEngine;
-import it.musichub.server.runner.ServiceFactory.Service;
 
 public class ServiceRegistry {
 
+	public static enum Service {persistence, indexer, search, discovery, ws}
+	
+	protected static Map<Service,ServiceDefinition> serviceMap = new LinkedHashMap<Service,ServiceDefinition>(){{
+		/**
+		 * Dependencies:
+		 * 
+		 * persistence: none
+		 * indexer: persistence
+		 * search: indexer
+		 * discovery: (persistenceTODO),XXXXXXXXXXXXXX
+		 */
+		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
+		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
+			addArg("startingDir", String.class);
+		}});
+		put(Service.search, new ServiceDefinition(SongsSearch.class));
+		put(Service.discovery, new ServiceDefinition(DiscoveryServiceImpl.class));
+	}};
+	
 	protected static class ServiceDefinition {
 		private Class<? extends MusicHubService> serviceClass;
 		private MusicHubService instance;
@@ -40,22 +58,5 @@ public class ServiceRegistry {
 			return args;
 		}
 	}
-	
-	protected static Map<Service,ServiceDefinition> serviceMap = new LinkedHashMap<Service,ServiceDefinition>(){{
-		/**
-		 * Dependencies:
-		 * 
-		 * persistence: none
-		 * indexer: persistence
-		 * search: indexer
-		 * discovery: XXXXXXXXXXXXXX
-		 */
-		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
-		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
-			addArg("startingDir", String.class);
-		}});
-		put(Service.search, new ServiceDefinition(SongsSearch.class));
-		put(Service.discovery, new ServiceDefinition(DiscoveryServiceImpl.class));
-	}};
 	
 }

@@ -5,18 +5,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 
 public class ServiceFactory implements MusicHubService {
@@ -38,8 +39,6 @@ public class ServiceFactory implements MusicHubService {
 	private static ServiceFactory instance = null;
 	
 	private Map<String,Object> params = new HashMap<>();
-	
-	public static enum Service {persistence, indexer, search, discovery, ws}
 	
 	public void addParam(String key, Object value){
 		params.put(key, value);
@@ -121,7 +120,8 @@ public class ServiceFactory implements MusicHubService {
 		
 		init();
 		start();
-		addHook();
+		final Timer timer = addTimer();
+		addHook(timer);
 		logger.info("MusicHub Server 0.1 started.");
 		
 		/**
@@ -130,36 +130,47 @@ public class ServiceFactory implements MusicHubService {
 		 * - ctrl-c
 		 * - 1 minuto (per prova)
 		 */
-		Console console = System.console();
+		Scanner sc = new Scanner(System.in);
+
 		while (true) {
-			String read = console.readLine();
-			if ("exit".equals(read))
+			String command = sc.nextLine();
+			if ("stop".equalsIgnoreCase(command)) {
+				logger.info("Terminating program by stop request... ");
+				sc.close();
+				timer.cancel();
 				newShutdown();
+				break;
+			}
 		}
 	}
 	
 	public void newShutdown(){
 		stop();
 		destroy();
-		System.exit(0);
+//		System.exit(0);
 	}
 	
-	public void addHook() {
+	public Timer addTimer() {
 		//esperimento timer
-		Timer timer = new Timer();
+		final Timer timer = new Timer();
         timer.schedule (new TimerTask() {
 
             @Override
             public void run() {
-            	logger.fatal("sono passati 30 sec");
+            	logger.fatal("sono passati 60 sec");
             	newShutdown();
             }
-        }, TimeUnit.SECONDS.toMillis(30));
+        }, TimeUnit.SECONDS.toMillis(60));
 		
-        
+		return timer;
+	}
+	
+	public void addHook(final Timer timer) {
         //shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
+				logger.info("Terminating program by shutdown hook... ");
+				timer.cancel();
 				newShutdown();
 			}
 		});

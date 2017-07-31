@@ -10,9 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
@@ -30,7 +28,7 @@ import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceFactory;
-import it.musichub.server.runner.ServiceFactory.Service;
+import it.musichub.server.runner.ServiceRegistry.Service;
 
 public class SongsIndexer implements IndexerService {
 	

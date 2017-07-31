@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.ServiceFactory;
-import it.musichub.server.runner.ServiceFactory.Service;
+import it.musichub.server.runner.ServiceRegistry.Service;
 
 public class Test {
 
