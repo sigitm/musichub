@@ -9,13 +9,15 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+import it.musichub.server.discovery.model.Device;
+import it.musichub.server.discovery.model.DeviceIcon;
+import it.musichub.server.discovery.model.DeviceRegistry;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.persistence.ex.FileCreationException;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
-import it.musichub.server.runner.MusicHubService;
 
 public class PersistenceEngine implements PersistenceService {
 	
@@ -43,6 +45,9 @@ public class PersistenceEngine implements PersistenceService {
 		XStream.setupDefaultSecurity(xstream);
 		xstream.allowTypeHierarchy(Folder.class);
 		xstream.allowTypeHierarchy(Song.class);
+		xstream.allowTypeHierarchy(DeviceRegistry.class);
+		xstream.allowTypeHierarchy(Device.class);
+		xstream.allowTypeHierarchy(DeviceIcon.class);
 //		xstream.addPermission(AnyTypePermission.ANY);
 		xstream.alias("folder", Folder.class);
 		xstream.alias("song", Song.class);

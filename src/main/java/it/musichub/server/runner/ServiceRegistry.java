@@ -19,13 +19,13 @@ public class ServiceRegistry {
 		 * persistence: none
 		 * indexer: persistence
 		 * search: indexer
-		 * discovery: (persistenceTODO),XXXXXXXXXXXXXX
+		 * discovery: persistence
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
-		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
-			addArg("startingDir", String.class);
-		}});
-		put(Service.search, new ServiceDefinition(SongsSearch.class));
+//		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
+//			addArg("startingDir", String.class);
+//		}});
+//		put(Service.search, new ServiceDefinition(SongsSearch.class));
 		put(Service.discovery, new ServiceDefinition(DiscoveryServiceImpl.class));
 	}};
 	
