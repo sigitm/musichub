@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.log4j.Logger;
@@ -125,7 +126,16 @@ public class HttpServerServiceImpl implements HttpServerService {
 //				os.close();
 			}else{
 				//song not found
-				String response = "404 (Not Found)\n";
+				String hostName = t.getLocalAddress().getHostName();
+				String response = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
+				+"<html><head>"
+				+"<title>404 Not Found</title>"
+				+"</head><body>"
+				+"<h1>Not Found</h1>"
+				+"<p>The requested URL "+path+" was not found on this server.</p>"
+				+"<hr>"
+				+"<address>MusicHub Server at "+hostName+"</address>"
+				+"</body></html>";
 				t.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, response.length());
 				OutputStream os = t.getResponseBody();
 				os.write(response.getBytes());

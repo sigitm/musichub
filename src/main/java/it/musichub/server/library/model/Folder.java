@@ -101,8 +101,7 @@ public class Folder implements Serializable {
 					if (Files.isSameFile(f.getFile().toPath(), folder.getFile().toPath()))
 						return f;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//Nothing to do
 				}
 			}
 			
@@ -119,26 +118,27 @@ public class Folder implements Serializable {
 	 */
 	public Folder getFolderRecursive(Folder folder){
 		try {
-			
 			if (Files.isSameFile(this.getFile().toPath(), folder.getFile().toPath()))
 				return this;
-			
-			if (folders != null){
-				for (Folder f : folders){
-	
-						if (Files.isSameFile(f.getFile().toPath(), folder.getFile().toPath()))
-							return f;
-						
-						Folder f2 = f.getFolderRecursive(folder);
-						if (f2 != null)
-							return f2;
+		} catch (IOException e) {
+			//Nothing to do
+		}
+
+		if (folders != null){
+			for (Folder f : folders){
+
+				try {
+					if (Files.isSameFile(f.getFile().toPath(), folder.getFile().toPath()))
+						return f;
+				} catch (IOException e) {
+					//Nothing to do
 				}
-				
+					
+				Folder f2 = f.getFolderRecursive(folder);
+				if (f2 != null)
+					return f2;
 			}
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 		return null;
@@ -157,8 +157,7 @@ public class Folder implements Serializable {
 					if (Files.isSameFile(s.getFile().toPath(), filePath))
 						return s;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//Nothing to do
 				}
 			}
 			
@@ -180,8 +179,7 @@ public class Folder implements Serializable {
 					if (Files.isSameFile(s.getFile().toPath(), song.getFile().toPath()))
 						return s;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//Nothing to do
 				}
 			}
 			

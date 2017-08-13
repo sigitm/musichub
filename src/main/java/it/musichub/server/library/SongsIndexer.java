@@ -38,18 +38,26 @@ public class SongsIndexer implements IndexerService {
 	 * - controllo timerizzato?
 	 * - listener di aggiornamento modifica file e cartelle da filesystem?
 	 * - sistema di configurazione? (per attivare timer e a quale intervallo, listener di aggiornamento, folder di salvataggio...)
-	 * - supporto a più cartelle e più file di configurazione?
+	 * - supporto a più cartelle?
+	 * 
+	 * - NEW: implementare delayStart, startupScan
+	 * - NEW: stato del servizio (es. started) e verifica di buon fine di init/start/stop/destroy
 	 */
 
 	private boolean init = false;
 	
+	//CONFIGURATIONS TODO
 	private String startingDir;
-	private Folder startingFolder;
-	
+	private static boolean verbose = false;
+	private static int delayStart = 0; //use this to delay MusicHub startup by a specified number of seconds before it starts reading the content directories. This can be useful when a content directory is on an external or networked disk which isn't yet mounted when MusicHub is started
+	private static String startupScan = "true"; //If set to true (the default), MusicHub does a complete library scan when it is started. If set to full, this scan ignores any existing cache files. If set to false, no library scan is done when MusicHub is started. See the Reading audio files section for details. 
 	private static final String LIBRARY_FILE_NAME = "library.xml";
 	
-	//options TODO
-	private static boolean verbose = false;
+	
+	private Folder startingFolder;
+	
+	
+	
 	
 	private final static Logger logger = Logger.getLogger(SongsIndexer.class);
 	
@@ -227,6 +235,7 @@ public class SongsIndexer implements IndexerService {
 		private static class CurrentFolderData{
 			public Folder currentFolder = null;
 			public boolean parseFiles = true;
+			public List<String> parsedFolders = new ArrayList<>();
 			public List<String> parsedSongs;
 			
 			public CurrentFolderData(Folder currentFolder) {
@@ -301,6 +310,7 @@ public class SongsIndexer implements IndexerService {
 				}else{		
 					parentFolder.addFolder(folder);
 				}
+				currentFoldersStack.peek().parsedFolders.add(folder.getPath()); //salvo la folder nella lista delle parsedFolders del padre
 				currentFoldersStack.push(new CurrentFolderData(folder));
 			}
 			CurrentFolderData currentFolderData = currentFoldersStack.peek();
@@ -383,6 +393,20 @@ public class SongsIndexer implements IndexerService {
 			
 			logger.debug(String.format("Ended indexing folder: %s%n", dir));
 
+			//verifico le folder presenti per scartare quelle non rilevate in questa esplorazione
+			List<Folder> foldersToRemove = new ArrayList<>();
+			List<Folder> folders = currentFolderData.currentFolder.getFolders();
+			if (folders != null){
+				for (Folder folder : folders){
+					String path = folder.getPath();
+					if (!currentFolderData.parsedFolders.contains(path)){
+						logger.debug("Removing old folder "+folder.getName());
+						foldersToRemove.add(folder);
+					}
+				}
+				currentFolderData.currentFolder.getFolders().removeAll(foldersToRemove);
+			}
+			
 			//verifico le song presenti per scartare quelle non rilevate in questa esplorazione
 			List<Song> songsToRemove = new ArrayList<>();
 			List<Song> songs = currentFolderData.currentFolder.getSongs();

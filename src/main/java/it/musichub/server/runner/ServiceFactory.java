@@ -24,6 +24,7 @@ public class ServiceFactory implements MusicHubService {
 
 	/*
 	 * EVOLUZIONI:
+	 * - NEW sistemare la questione init/start/newStart/ecc.... e i vari hook.. e lo stato del runner!
 	 * v. saveToDisk
 	 * v. init
 	 */	
@@ -150,7 +151,7 @@ public class ServiceFactory implements MusicHubService {
 	public void newShutdown(){
 		stop();
 		destroy();
-		System.exit(0);
+//		System.exit(0);
 	}
 	
 	public Timer addTimer() {
