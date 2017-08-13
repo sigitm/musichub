@@ -25,5 +25,11 @@ public class FolderFactory {
 
 		return folder;
 	}
+	
+	public static Folder fromRelativePath(String relativePath, Folder root) {
+		String rootPath = root.getPath();
+		String path = rootPath + relativePath;
+		return fromFilePath(path, rootPath, null);
+	}
 
 }

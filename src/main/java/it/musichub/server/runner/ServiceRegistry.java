@@ -3,14 +3,15 @@ package it.musichub.server.runner;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import it.musichub.server.discovery.DiscoveryServiceImpl;
 import it.musichub.server.library.SongsIndexer;
 import it.musichub.server.library.SongsSearch;
 import it.musichub.server.persistence.PersistenceEngine;
+import it.musichub.server.upnp.DiscoveryServiceImpl;
+import it.musichub.server.upnp.HttpServerServiceImpl;
 
 public class ServiceRegistry {
 
-	public static enum Service {persistence, indexer, search, discovery, ws}
+	public static enum Service {persistence, indexer, search, upnpdiscovery, upnphttpserver, upnpcontroller, ws}
 	
 	protected static Map<Service,ServiceDefinition> serviceMap = new LinkedHashMap<Service,ServiceDefinition>(){{
 		/**
@@ -19,14 +20,17 @@ public class ServiceRegistry {
 		 * persistence: none
 		 * indexer: persistence
 		 * search: indexer
-		 * discovery: persistence
+		 * upnpdiscovery: persistence
+		 * upnphttpserver: indexer XXXXXXXXXXXXXXXXX
+		 * upnpcontroller: upnpdiscovery XXXXXXXXXXXXXXXX
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
-//		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
-//			addArg("startingDir", String.class);
-//		}});
+		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
+			addArg("startingDir", String.class);
+		}});
 //		put(Service.search, new ServiceDefinition(SongsSearch.class));
-		put(Service.discovery, new ServiceDefinition(DiscoveryServiceImpl.class));
+//		put(Service.upnpdiscovery, new ServiceDefinition(DiscoveryServiceImpl.class));
+		put(Service.upnphttpserver, new ServiceDefinition(HttpServerServiceImpl.class));
 	}};
 	
 	protected static class ServiceDefinition {

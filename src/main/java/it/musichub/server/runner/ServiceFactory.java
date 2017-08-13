@@ -106,7 +106,10 @@ public class ServiceFactory implements MusicHubService {
 			if ("SIGIQC".equals(InetAddress.getLocalHost().getHostName())){
 				startingDirStr = "N:\\incoming\\##mp3 new";
 				startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
-			}
+			}else if ("SARANB".equals(InetAddress.getLocalHost().getHostName())){
+				startingDirStr = "C:\\Users\\Sara\\Desktop";
+				startingDirStr2 = "C:\\Users\\Sara\\Desktop";
+			} 
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -147,20 +150,21 @@ public class ServiceFactory implements MusicHubService {
 	public void newShutdown(){
 		stop();
 		destroy();
-//		System.exit(0);
+		System.exit(0);
 	}
 	
 	public Timer addTimer() {
 		//esperimento timer
+		int time = 600;
 		final Timer timer = new Timer();
         timer.schedule (new TimerTask() {
 
             @Override
             public void run() {
-            	logger.fatal("sono passati 60 sec");
+            	logger.fatal("sono passati "+time+" sec");
             	newShutdown();
             }
-        }, TimeUnit.SECONDS.toMillis(60));
+        }, TimeUnit.SECONDS.toMillis(time));
 		
 		return timer;
 	}

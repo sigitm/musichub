@@ -190,6 +190,24 @@ public class Folder implements Serializable {
 		return null;
 	}
 	
+	/**
+	 * Recupera una canzone se esiste
+	 * 
+	 * @param song
+	 * @return 
+	 */
+	public Song getSong(String filename){
+		if (songs != null){
+			for (Song s : songs){
+				if (s.getFilename().equals(filename))
+					return s;
+			}
+			
+		}
+		
+		return null;
+	}
+	
 	
 	@Override
 	public String toString() {

@@ -1,4 +1,4 @@
-package it.musichub.server.discovery;
+package it.musichub.server.upnp;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.runner.MusicHubService;

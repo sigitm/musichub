@@ -1,17 +1,10 @@
 package it.musichub.server.discovery.model;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.fourthline.cling.model.meta.Icon;
 import org.fourthline.cling.model.meta.RemoteDevice;
-
-import com.mpatric.mp3agic.ID3v1;
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.Mp3File;
-
-import it.musichub.server.library.utils.FileUtils;
 
 public class DeviceFactory {
 	

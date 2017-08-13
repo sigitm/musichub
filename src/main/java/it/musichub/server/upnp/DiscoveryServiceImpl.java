@@ -1,4 +1,4 @@
-package it.musichub.server.discovery;
+package it.musichub.server.upnp;
 
 import java.net.URI;
 import java.util.Arrays;
