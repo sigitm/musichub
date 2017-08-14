@@ -3,9 +3,9 @@ package it.musichub.server.library;
 import java.util.List;
 
 import it.musichub.server.library.model.Song;
-import it.musichub.server.runner.MusicHubService;
+import it.musichub.server.runner.IMusicHubService;
 
-public interface SearchService extends MusicHubService {
+public interface SearchService extends IMusicHubService {
 
 	public Query createQuery(String query);
 	

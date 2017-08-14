@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 
+import it.musichub.server.config.Constants;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;
 import it.musichub.server.library.model.Song;
@@ -27,10 +28,11 @@ import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
+import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
 
-public class SongsIndexer implements IndexerService {
+public class SongsIndexer extends MusicHubServiceImpl implements IndexerService {
 	
 	/*
 	 * EVOLUZIONI:
@@ -46,14 +48,8 @@ public class SongsIndexer implements IndexerService {
 
 	private boolean init = false;
 	
-	//CONFIGURATIONS TODO
+	private static boolean verbose = false; //TODO sistemare la questione del verbose static...
 	private String startingDir;
-	private static boolean verbose = false;
-	private static int delayStart = 0; //use this to delay MusicHub startup by a specified number of seconds before it starts reading the content directories. This can be useful when a content directory is on an external or networked disk which isn't yet mounted when MusicHub is started
-	private static String startupScan = "true"; //If set to true (the default), MusicHub does a complete library scan when it is started. If set to full, this scan ignores any existing cache files. If set to false, no library scan is done when MusicHub is started. See the Reading audio files section for details. 
-	private static final String LIBRARY_FILE_NAME = "library.xml";
-	
-	
 	private Folder startingFolder;
 	
 	
@@ -61,9 +57,10 @@ public class SongsIndexer implements IndexerService {
 	
 	private final static Logger logger = Logger.getLogger(SongsIndexer.class);
 	
-	public SongsIndexer(String startingDir) {
+	public SongsIndexer() {
 		super();
-		this.startingDir = startingDir;
+		this.startingDir = getConfiguration().getContentDir();
+		this.verbose = getConfiguration().isVerboseMode();
 	}
 	
 	@Override
@@ -190,7 +187,7 @@ public class SongsIndexer implements IndexerService {
 		
 		Folder loadedStartingFolder = null;
 		try {
-			loadedStartingFolder = getPersistenceService().loadFromDisk(Folder.class, LIBRARY_FILE_NAME);
+			loadedStartingFolder = getPersistenceService().loadFromDisk(Folder.class, Constants.LIBRARY_FILE_NAME);
 		} catch(FileNotFoundException e) {
 			logger.warn("Library file not found. May be first launch.", e);
 		    return;
@@ -213,7 +210,7 @@ public class SongsIndexer implements IndexerService {
 		logger.info("Saving library to file...");
 		
 		try {
-			getPersistenceService().saveToDisk(startingFolder, LIBRARY_FILE_NAME);
+			getPersistenceService().saveToDisk(startingFolder, Constants.LIBRARY_FILE_NAME);
 		} catch (SaveException e) {
 			logger.error("Error saving library", e);
 			return;

@@ -26,7 +26,7 @@ public class ServiceRegistry {
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
 		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
-			addArg("startingDir", String.class);
+//			addArg("startingDir", String.class);
 		}});
 //		put(Service.search, new ServiceDefinition(SongsSearch.class));
 //		put(Service.upnpdiscovery, new ServiceDefinition(DiscoveryServiceImpl.class));
@@ -34,25 +34,25 @@ public class ServiceRegistry {
 	}};
 	
 	protected static class ServiceDefinition {
-		private Class<? extends MusicHubService> serviceClass;
-		private MusicHubService instance;
+		private Class<? extends IMusicHubService> serviceClass;
+		private IMusicHubService instance;
 		private Map<String,Class<?>> args = new LinkedHashMap<>();
 		
-		protected ServiceDefinition(Class<? extends MusicHubService> serviceClass) {
+		protected ServiceDefinition(Class<? extends IMusicHubService> serviceClass) {
 			super();
 			this.serviceClass = serviceClass;
 		}
 		
-		protected Class<? extends MusicHubService> getServiceClass() {
+		protected Class<? extends IMusicHubService> getServiceClass() {
 			return serviceClass;
 		}
 //		public void setServiceClass(Class<? extends MusicHubService> serviceClass) {
 //			this.serviceClass = serviceClass;
 //		}
-		protected MusicHubService getInstance() {
+		protected IMusicHubService getInstance() {
 			return instance;
 		}
-		protected void setInstance(MusicHubService instance) {
+		protected void setInstance(IMusicHubService instance) {
 			this.instance = instance;
 		}
 		protected void addArg(String name, Class<?> clazz) {

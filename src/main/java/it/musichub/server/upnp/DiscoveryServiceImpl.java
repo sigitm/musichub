@@ -14,19 +14,20 @@ import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
 
-import it.musichub.server.discovery.model.Device;
-import it.musichub.server.discovery.model.DeviceFactory;
-import it.musichub.server.discovery.model.DeviceRegistry;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
+import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
+import it.musichub.server.upnp.model.Device;
+import it.musichub.server.upnp.model.DeviceFactory;
+import it.musichub.server.upnp.model.DeviceRegistry;
 
-public class DiscoveryServiceImpl implements DiscoveryService {
+public class DiscoveryServiceImpl extends MusicHubServiceImpl implements DiscoveryService {
 
 	/**
 	 * Tengo i device in un mio deviceregistry e li aggiorno con il listener

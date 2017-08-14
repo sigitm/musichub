@@ -1,6 +1,6 @@
 package it.musichub.server.runner;
 
-public interface MusicHubService {
+public interface IMusicHubService {
 
 	public void init();
 	

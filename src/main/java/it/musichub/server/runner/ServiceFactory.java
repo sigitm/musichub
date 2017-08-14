@@ -1,6 +1,5 @@
 package it.musichub.server.runner;
 
-import java.io.Console;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
@@ -17,10 +16,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import it.musichub.server.config.Configuration;
+import it.musichub.server.config.Constants;
+import it.musichub.server.persistence.PersistenceEngine;
+import it.musichub.server.persistence.PersistenceService;
+import it.musichub.server.persistence.ex.LoadException;
+import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 
-public class ServiceFactory implements MusicHubService {
+public class ServiceFactory {
 
 	/*
 	 * EVOLUZIONI:
@@ -39,6 +44,9 @@ public class ServiceFactory implements MusicHubService {
 	
 	private static ServiceFactory instance = null;
 	
+	private Configuration config;
+	private PersistenceService configPers = new PersistenceEngine();
+	
 	private Map<String,Object> params = new HashMap<>();
 	
 	public void addParam(String key, Object value){
@@ -52,7 +60,7 @@ public class ServiceFactory implements MusicHubService {
 		return instance;
 	}
 	
-	public static MusicHubService getServiceInstance(Service service){
+	public static IMusicHubService getServiceInstance(Service service){
 		return instance.getServiceMap().get(service).getInstance();
 	}
 	
@@ -75,7 +83,7 @@ public class ServiceFactory implements MusicHubService {
 			logger.debug("Generating service "+service.name()+"...");
 			ServiceDefinition svcDefinition = getServiceMap().get(service);
 			Class<?> svcClass = svcDefinition.getServiceClass();
-			MusicHubService svcInstance = null;
+			IMusicHubService svcInstance = null;
 			try {
 				List<Class<?>> argClasses = new ArrayList<>();
 				List<Object> argValues = new ArrayList<>();
@@ -85,7 +93,7 @@ public class ServiceFactory implements MusicHubService {
 					argValues.add(params.get(name));
 				}
 				Constructor constructor = svcClass.getDeclaredConstructor(argClasses.toArray(new Class<?>[]{}));
-				svcInstance = (MusicHubService) constructor.newInstance(argValues.toArray(new Object[]{}));
+				svcInstance = (IMusicHubService) constructor.newInstance(argValues.toArray(new Object[]{}));
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				logger.error("Error generating service "+service.name(), e);
 				return;
@@ -97,10 +105,7 @@ public class ServiceFactory implements MusicHubService {
 	}
 	
 	public static void main(String[] args) {
-		ServiceFactory.getInstance().newStart();
-	}
-	public void newStart(){
-		//TODO PROVVISORIO
+		//TODO PROVVISORIO mettere in un test
 		String startingDirStr = "D:\\users\\msigismondi.INT\\Desktop";
 		String startingDirStr2 = "D:\\users\\msigismondi.INT\\Desktop";
 		try {
@@ -115,15 +120,34 @@ public class ServiceFactory implements MusicHubService {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		addParam("startingDir", startingDirStr);
 		
-		
-		
-		
-		
-		
-		init();
-		start();
+		ServiceFactory sf = ServiceFactory.getInstance();
+		sf.init();
+		sf.getConfiguration().setContentDir(startingDirStr);
+		sf.start();
+	}
+	
+	public Configuration getConfiguration(){
+		return config;
+	}
+	
+	public void init(){
+		//using persistence service in unmanaged mode
+		configPers.init();
+		configPers.start();
+		try {
+			config = configPers.loadFromDisk(Configuration.class, Constants.CONFIG_FILE_NAME);
+		} catch (LoadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (config == null)
+			config = new Configuration();
+	}
+	
+	public void start(){		
+		initServices();
+		startServices();
 		final Timer timer = addTimer();
 		addHook(timer);
 		logger.info("MusicHub Server 0.1 started.");
@@ -138,7 +162,7 @@ public class ServiceFactory implements MusicHubService {
 
 		while (true) {
 			String command = sc.nextLine();
-			if ("stop".equalsIgnoreCase(command)) {
+			if ("stop".equalsIgnoreCase(command) || "exit".equalsIgnoreCase(command)) {
 				logger.info("Terminating program by stop request... ");
 				sc.close();
 				timer.cancel();
@@ -149,14 +173,24 @@ public class ServiceFactory implements MusicHubService {
 	}
 	
 	public void newShutdown(){
-		stop();
-		destroy();
+		stopServices();
+		destroyServices();
+		
+		try {
+			configPers.saveToDisk(config, Constants.CONFIG_FILE_NAME);
+		} catch (SaveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		configPers.stop();
+		configPers.destroy();
+		
 //		System.exit(0);
 	}
 	
 	public Timer addTimer() {
 		//esperimento timer
-		int time = 600;
+		final int time = 600;
 		final Timer timer = new Timer();
         timer.schedule (new TimerTask() {
 
@@ -181,15 +215,14 @@ public class ServiceFactory implements MusicHubService {
 		});
 	}
 	
-	@Override
-	public void init(){
+	private void initServices(){
 		generateServices();
 		
 		logger.debug("Initializing services...");
 		for (Service service : getServiceList(false)){
 			logger.debug("Initializing service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
-			MusicHubService svc = serviceDefinition.getInstance();
+			IMusicHubService svc = serviceDefinition.getInstance();
 			svc.init();
 			logger.debug("Service "+service.name()+" initialized");
 		}
@@ -197,13 +230,12 @@ public class ServiceFactory implements MusicHubService {
 		logger.debug("Services initialized");
 	}
 
-	@Override
-	public void start(){
+	private void startServices(){
 		logger.debug("Starting services...");
 		for (Service service : getServiceList(false)){
 			logger.debug("Starting service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
-			MusicHubService svc = serviceDefinition.getInstance();
+			IMusicHubService svc = serviceDefinition.getInstance();
 			svc.start();
 			logger.debug("Service "+service.name()+" started");
 		}
@@ -211,13 +243,12 @@ public class ServiceFactory implements MusicHubService {
 		logger.debug("Services started");
 	}
 	
-	@Override
-	public void stop(){
+	private void stopServices(){
 		logger.debug("Stopping services...");
 		for (Service service : getServiceList(true)){
 			logger.debug("Stopping service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
-			MusicHubService svc = serviceDefinition.getInstance();
+			IMusicHubService svc = serviceDefinition.getInstance();
 			svc.stop();
 			logger.debug("Service "+service.name()+" stopped");
 		}
@@ -225,13 +256,12 @@ public class ServiceFactory implements MusicHubService {
 		logger.debug("Services stopped");
 	}
 	
-	@Override
-	public void destroy(){
+	private void destroyServices(){
 		logger.debug("Destroying services...");
 		for (Service service : getServiceList(true)){
 			logger.debug("Destroying service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
-			MusicHubService svc = serviceDefinition.getInstance();
+			IMusicHubService svc = serviceDefinition.getInstance();
 			svc.destroy();
 			logger.debug("Service "+service.name()+" destroyed");
 		}

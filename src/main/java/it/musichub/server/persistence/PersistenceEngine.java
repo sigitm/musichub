@@ -9,17 +9,19 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
-import it.musichub.server.discovery.model.Device;
-import it.musichub.server.discovery.model.DeviceIcon;
-import it.musichub.server.discovery.model.DeviceRegistry;
+import it.musichub.server.config.Constants;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.persistence.ex.FileCreationException;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
+import it.musichub.server.runner.MusicHubServiceImpl;
+import it.musichub.server.upnp.model.Device;
+import it.musichub.server.upnp.model.DeviceIcon;
+import it.musichub.server.upnp.model.DeviceRegistry;
 
-public class PersistenceEngine implements PersistenceService {
+public class PersistenceEngine extends MusicHubServiceImpl implements PersistenceService {
 	
 	/*
 	 * EVOLUZIONI:
@@ -28,9 +30,6 @@ public class PersistenceEngine implements PersistenceService {
 	private boolean init = false;
 	
 	private XStream xstream;
-	
-	private static final String LIBRARY_PATH_NAME = System.getProperty("java.io.tmpdir");
-	private static final String LIBRARY_FOLDER_NAME = ".musichub";
 	
 	private final static Logger logger = Logger.getLogger(PersistenceEngine.class);
 	
@@ -74,7 +73,7 @@ public class PersistenceEngine implements PersistenceService {
 	}
 	
 	private static String getLibraryPath(String fileName){
-		return LIBRARY_PATH_NAME + File.separator + LIBRARY_FOLDER_NAME + File.separator + fileName;
+		return Constants.PATH_NAME + File.separator + Constants.FOLDER_NAME + File.separator + fileName;
 	}
 	
 	public <T> T loadFromDisk(Class<T> clazz, String fileName) throws LoadException{

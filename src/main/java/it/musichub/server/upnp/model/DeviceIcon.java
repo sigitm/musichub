@@ -1,4 +1,4 @@
-package it.musichub.server.discovery.model;
+package it.musichub.server.upnp.model;
 
 import java.io.Serializable;
 import java.net.URI;

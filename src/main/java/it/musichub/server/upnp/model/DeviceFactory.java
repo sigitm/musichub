@@ -1,4 +1,4 @@
-package it.musichub.server.discovery.model;
+package it.musichub.server.upnp.model;
 
 import java.util.ArrayList;
 import java.util.List;
