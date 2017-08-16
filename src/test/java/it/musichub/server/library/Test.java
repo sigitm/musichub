@@ -13,137 +13,34 @@ import it.musichub.server.runner.ServiceRegistry.Service;
 public class Test {
 
 	public static void main(String[] args) {
+		//TODO PROVVISORIO mettere in un test
 		String startingDirStr = "D:\\users\\msigismondi.INT\\Desktop";
 		String startingDirStr2 = "D:\\users\\msigismondi.INT\\Desktop";
 		try {
 			if ("SIGIQC".equals(InetAddress.getLocalHost().getHostName())){
 				startingDirStr = "N:\\incoming\\##mp3 new";
 				startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
-			}
+			}else if ("SARANB".equals(InetAddress.getLocalHost().getHostName())){
+				startingDirStr = "C:\\Users\\Sara\\Desktop";
+				startingDirStr2 = "C:\\Users\\Sara\\Desktop";
+			} 
 		} catch (UnknownHostException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
-		ServiceFactory sf = ServiceFactory.getInstance();
-		sf.addParam("startingDir", startingDirStr);
 		
+		ServiceFactory sf = ServiceFactory.getInstance();
 		sf.init();
+//		sf.getConfiguration().setContentDir(startingDirStr);
 		sf.start();
 		
-		IndexerService si = (IndexerService) sf.getServiceInstance(Service.indexer);
-		
-		
-		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** PARTE 2: refresh totale ******");
-		si.refresh();
-
-		
 //		try {
-//			TimeUnit.SECONDS.sleep(3);
+//			TimeUnit.SECONDS.sleep(30);
 //		} catch (InterruptedException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //		System.out.println();
-//		System.out.println();
-//		System.out.println();
-//		System.out.println("****** PARTE 3: refresh parziale ******");
-//		si.refresh(startingDirStr2);
-		
-		
-//		try {
-//		TimeUnit.SECONDS.sleep(3);
-//	} catch (InterruptedException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	}
-//	System.out.println();
-//	System.out.println();
-//	System.out.println();
-//	System.out.println("****** PARTE 4: refresh parziale 2 ******");
-//	si.refresh(startingDirStr, false);
-		
-		
-		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** PARTE 4: search ******");
-		
-		
-		String queryStr = "song.artist == 'Ligabue'";
-		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
-		Query query = ss.createQuery(queryStr);
-		List<Song> results = ss.execute(query);
-		System.out.println("search results:");
-		for (Song song : results)
-			System.out.println(song);
-		
-		
-
-		
-		
-		
-		
-		try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println("****** FINE ******");
-		
-		sf.stop();
-		
-		
-		Folder f = si.getStartingFolder();
-		
-		sf.destroy();
-		
-		
-		
-		
-//		//test visita
-//		System.out.println();
-//		System.out.println("****** test visita ******");
-//		visitTest(f);
-		
-		
-		
-	}
-	
-	private static void visitTest(Folder folder){
-		System.out.println("Folder = "+folder);
-		
-		if (folder.getSongs() != null){
-			for (Song song : folder.getSongs())
-				System.out.println("Song = "+song);
-		}
-		
-		if (folder.getFolders() != null){
-			for (Folder child : folder.getFolders())
-				visitTest(child);
-		}
-			
-		System.out.println();
+//		sf.shutdown();
 	}
 }

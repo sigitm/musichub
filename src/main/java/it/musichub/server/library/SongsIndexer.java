@@ -48,7 +48,7 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 
 	private boolean init = false;
 	
-	private static boolean verbose = false; //TODO sistemare la questione del verbose static...
+	private static boolean verbose = getConfiguration().isVerboseMode();
 	private String startingDir;
 	private Folder startingFolder;
 	
@@ -60,7 +60,6 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	public SongsIndexer() {
 		super();
 		this.startingDir = getConfiguration().getContentDir();
-		this.verbose = getConfiguration().isVerboseMode();
 	}
 	
 	@Override

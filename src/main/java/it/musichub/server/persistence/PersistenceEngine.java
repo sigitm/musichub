@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+import it.musichub.server.config.Configuration;
 import it.musichub.server.config.Constants;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
@@ -42,6 +43,7 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 		//init xstream
 		xstream = new XStream();
 		XStream.setupDefaultSecurity(xstream);
+		xstream.allowTypeHierarchy(Configuration.class);
 		xstream.allowTypeHierarchy(Folder.class);
 		xstream.allowTypeHierarchy(Song.class);
 		xstream.allowTypeHierarchy(DeviceRegistry.class);

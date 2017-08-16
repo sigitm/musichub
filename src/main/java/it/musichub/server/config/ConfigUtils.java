@@ -23,6 +23,7 @@ public class ConfigUtils implements Serializable {
 		    if (field.isAnnotationPresent(Required.class)) {
 		    	Object value = null;
 		    	try {
+		    		field.setAccessible(true);
 					value = field.get(config);
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					logger.warn("Error accessing field "+field.getName()+" for Required checking",e);

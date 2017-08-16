@@ -2,8 +2,6 @@ package it.musichub.server.runner;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,10 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import it.musichub.server.config.ConfigUtils;
+import it.musichub.server.config.ConfigUtils.ValidateResult;
 import it.musichub.server.config.Configuration;
 import it.musichub.server.config.Constants;
 import it.musichub.server.persistence.PersistenceEngine;
 import it.musichub.server.persistence.PersistenceService;
+import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceRegistry.Service;
@@ -104,115 +105,152 @@ public class ServiceFactory {
 		}
 	}
 	
-	public static void main(String[] args) {
-		//TODO PROVVISORIO mettere in un test
-		String startingDirStr = "D:\\users\\msigismondi.INT\\Desktop";
-		String startingDirStr2 = "D:\\users\\msigismondi.INT\\Desktop";
-		try {
-			if ("SIGIQC".equals(InetAddress.getLocalHost().getHostName())){
-				startingDirStr = "N:\\incoming\\##mp3 new";
-				startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
-			}else if ("SARANB".equals(InetAddress.getLocalHost().getHostName())){
-				startingDirStr = "C:\\Users\\Sara\\Desktop";
-				startingDirStr2 = "C:\\Users\\Sara\\Desktop";
-			} 
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		ServiceFactory sf = ServiceFactory.getInstance();
-		sf.init();
-		sf.getConfiguration().setContentDir(startingDirStr);
-		sf.start();
-	}
-	
 	public Configuration getConfiguration(){
 		return config;
 	}
 	
-	public void init(){
+	public void setConfiguration(Configuration config){
+		this.config = config;
+	}
+	
+	public synchronized void init(){
 		//using persistence service in unmanaged mode
 		configPers.init();
 		configPers.start();
-		try {
-			config = configPers.loadFromDisk(Configuration.class, Constants.CONFIG_FILE_NAME);
-		} catch (LoadException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+		if (config == null){
+			try {
+				config = configPers.loadFromDisk(Configuration.class, Constants.CONFIG_FILE_NAME);
+			} catch(FileNotFoundException e) {
+				logger.warn("Config file not found. May be first launch.", e);
+			} catch(LoadException e) {
+				logger.error("Error loading config file", e);
+			}
+			if (config == null)
+				config = new Configuration();
 		}
-		if (config == null)
-			config = new Configuration();
 	}
 	
-	public void start(){		
+	private List<ShutdownHook> hooks = new ArrayList<ShutdownHook>();
+	
+	private synchronized void enableHook(ShutdownHook hook){
+		hook.enable();
+		hooks.add(hook);
+	}
+	
+	private synchronized void disableHooks(){
+		for (ShutdownHook hook : hooks)
+			hook.disable();
+		hooks.clear();
+	}
+	
+	public synchronized void start(){
+		//check configuration
+		ValidateResult configValidation = ConfigUtils.validate(config);
+		if (!configValidation.isOk()){
+			logger.error("Error validating configuration.");
+			for (String msg : configValidation.getErrors())
+				logger.error(msg);
+			return;
+		}
+		
+		//starting services
 		initServices();
 		startServices();
-		final Timer timer = addTimer();
-		addHook(timer);
 		logger.info("MusicHub Server 0.1 started.");
 		
-		/**
-		 * esperimenti shutdown:
-		 * - "exit"
-		 * - ctrl-c
-		 * - 1 minuto (per prova)
+		/*
+		 * shutdown hooks:
+		 * - "stop"/"exit" from console
+		 * - jvm interruption (es. ctrl-c)
+		 * - autosleep timer
 		 */
+		
+		enableHook(new TimerHook());
+		enableHook(new SystemHook());
+		
+		//console
 		Scanner sc = new Scanner(System.in);
-
 		while (true) {
 			String command = sc.nextLine();
 			if ("stop".equalsIgnoreCase(command) || "exit".equalsIgnoreCase(command)) {
 				logger.info("Terminating program by stop request... ");
 				sc.close();
-				timer.cancel();
-				newShutdown();
+				shutdown();
 				break;
 			}
 		}
 	}
 	
-	public void newShutdown(){
+	private static interface ShutdownHook{
+		public abstract void enable();
+		public abstract void disable();
+	}
+	
+	private class TimerHook implements ShutdownHook{
+
+		private Timer timer;
+		
+		@Override
+		public void enable() {
+			final Integer time = Constants.AUTOSLEEP_TIME;
+			if (time != null){
+				timer = new Timer();
+		        timer.schedule (new TimerTask() {
+
+		            @Override
+		            public void run() {
+		            	logger.fatal("sono passati "+time+" sec");
+		            	shutdown();
+		            }
+		        }, TimeUnit.SECONDS.toMillis(time));	
+			}
+		}
+
+		@Override
+		public void disable() {
+			if (timer != null)
+				timer.cancel();
+		}
+	}
+
+	private class SystemHook implements ShutdownHook{
+		
+		private Thread thread = new Thread() {
+			public void run() {
+				logger.info("Terminating program by shutdown hook... ");
+				shutdown();
+			}
+		};
+		
+		@Override
+		public void enable() {
+			Runtime.getRuntime().addShutdownHook(thread);
+		}
+
+		@Override
+		public void disable() {
+			Runtime.getRuntime().removeShutdownHook(thread);
+		}
+	}
+	
+	public synchronized void shutdown(){
+		//disable hooks
+		disableHooks();
+		
 		stopServices();
 		destroyServices();
 		
 		try {
 			configPers.saveToDisk(config, Constants.CONFIG_FILE_NAME);
 		} catch (SaveException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Error saving config file", e);
+		    return;
 		}
 		configPers.stop();
 		configPers.destroy();
 		
-//		System.exit(0);
-	}
-	
-	public Timer addTimer() {
-		//esperimento timer
-		final int time = 600;
-		final Timer timer = new Timer();
-        timer.schedule (new TimerTask() {
-
-            @Override
-            public void run() {
-            	logger.fatal("sono passati "+time+" sec");
-            	newShutdown();
-            }
-        }, TimeUnit.SECONDS.toMillis(time));
-		
-		return timer;
-	}
-	
-	public void addHook(final Timer timer) {
-        //shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				logger.info("Terminating program by shutdown hook... ");
-				timer.cancel();
-				newShutdown();
-			}
-		});
+		System.exit(0);
 	}
 	
 	private void initServices(){
