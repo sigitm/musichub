@@ -2,13 +2,12 @@ package it.musichub.server.upnp;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.runner.IMusicHubService;
+import it.musichub.server.upnp.model.Device;
 
 public interface DiscoveryService extends IMusicHubService {
 
-//	public void refresh();
-//	public void refresh(String subFolderPath);
-//	public void refresh(String subFolderPath, boolean parseSubFolders);
-//	
-//	public Folder getStartingFolder();
-
+	public Device getSelectedDevice();
+	public void setSelectedDevice(Device device);
+	public void clearSelectedDevice();
+	
 }

@@ -22,6 +22,10 @@ public class Constants implements Serializable {
 	 */
 	public static final String LIBRARY_FILE_NAME = "library.xml";
 
-
+	/*
+	 * upnpdiscovery
+	 */
+	public static final String REGISTRY_FILE_NAME = "devices.xml";
+	
 	
 }

@@ -9,6 +9,8 @@ import it.musichub.server.upnp.DiscoveryServiceImpl;
 
 public class DeviceRegistry extends HashMap<String, Device> {
 
+	private String selectedDevice;
+	
 	private final static Logger logger = Logger.getLogger(DeviceRegistry.class);
 	
 //	public Device getDevice(String udn){
@@ -22,6 +24,34 @@ public class DeviceRegistry extends HashMap<String, Device> {
 //	public boolean containsDevice(String udn){
 //		return getDevice(udn) != null;
 //	}
+	
+	public Device getSelectedDevice(){
+		if (selectedDevice == null)
+			return null;
+		
+		return get(selectedDevice);
+	}
+	
+	public void setSelectedDevice(Device device){
+		if (device == null || device.getUdn() == null || get(device) == null)
+			throw new IllegalArgumentException("Invalid device "+device);
+		
+		this.selectedDevice = device.getUdn();
+	}
+	
+	public void clearSelectedDevice(){
+		this.selectedDevice = null;
+	}
+	
+	@Override
+	public Device remove(Object key) {
+		Device result = super.remove(key);
+		
+		if (result != null && result.getUdn() != null && result.getUdn().equals(selectedDevice))
+			clearSelectedDevice();
+		
+		return result;
+	}
 	
 	public Device mergeDevice(Device device){
 		String key = device.getUdn();

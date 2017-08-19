@@ -1,6 +1,5 @@
 package it.musichub.server.upnp;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,11 +10,11 @@ import org.fourthline.cling.model.message.header.UDADeviceTypeHeader;
 import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDADeviceType;
+import org.fourthline.cling.model.types.UDAServiceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
 
-import it.musichub.server.library.model.Folder;
-import it.musichub.server.library.model.FolderFactory;
+import it.musichub.server.config.Constants;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
@@ -42,12 +41,10 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	private DeviceRegistry deviceRegistry = null;
 	private UpnpService upnpService = null;
 	
-	private static final String REGISTRY_FILE_NAME = "devices.xml";
-	
 	private final static Logger logger = Logger.getLogger(DiscoveryServiceImpl.class);
 	
-	private static List<UDADeviceType> getDeviceTypes(){
-		return Arrays.asList(new UDADeviceType[]{new UDADeviceType("MediaRenderer")});
+	private static boolean isValidDevice(RemoteDevice device){
+		return new UDADeviceType("MediaRenderer").equals(device.getType()) && device.findService(new UDAServiceType("AVTransport")) != null;
 	}
 	
 	private PersistenceService getPersistenceService(){
@@ -58,7 +55,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		logger.info("Loading registry from file...");
 		
 		try {
-			deviceRegistry = getPersistenceService().loadFromDisk(DeviceRegistry.class, REGISTRY_FILE_NAME);
+			deviceRegistry = getPersistenceService().loadFromDisk(DeviceRegistry.class, Constants.REGISTRY_FILE_NAME);
 		} catch(FileNotFoundException e) {
 			logger.warn("Registry file not found. May be first launch.", e);
 		    return;
@@ -72,7 +69,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		logger.info("Saving registry to file...");
 		
 		try {
-			getPersistenceService().saveToDisk(deviceRegistry, REGISTRY_FILE_NAME);
+			getPersistenceService().saveToDisk(deviceRegistry, Constants.REGISTRY_FILE_NAME);
 		} catch (SaveException e) {
 			logger.error("Error saving registry", e);
 			return;
@@ -118,10 +115,6 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	
 	
 	private class MediaRenderersListener implements RegistryListener {
-
-		private boolean isValidDevice(RemoteDevice device){
-			return getDeviceTypes().contains(device.getType());
-		}
 		
 		private void registerOnline(RemoteDevice device){
 			Device dev = DeviceFactory.fromClingDevice(device);
@@ -180,5 +173,20 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 //			logger.info("Shutdown of registry complete!");
 		}
 	};
+	
+	@Override
+	public Device getSelectedDevice(){
+		return deviceRegistry.getSelectedDevice();
+	}
+	
+	@Override
+	public void setSelectedDevice(Device device){
+		deviceRegistry.setSelectedDevice(device);
+	}
+	
+	@Override
+	public void clearSelectedDevice(){
+		deviceRegistry.clearSelectedDevice();
+	}
 
 }

@@ -7,6 +7,7 @@ public class Device implements Serializable {
 
 	private String udn;
 	private String deviceType;
+	private String customName;
 	private String friendlyName;
 	private String manifacturer;
 	private String modelName;
@@ -27,6 +28,12 @@ public class Device implements Serializable {
 	}
 	public void setDeviceType(String deviceType) {
 		this.deviceType = deviceType;
+	}
+	public String getCustomName() {
+		return customName;
+	}
+	public void setCustomName(String customName) {
+		this.customName = customName;
 	}
 	public String getFriendlyName() {
 		return friendlyName;
