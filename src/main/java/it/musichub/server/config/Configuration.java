@@ -30,6 +30,11 @@ public class Configuration implements Serializable {
 	private String startupScan = "true"; //If set to true (the default), MusicHub does a complete library scan when it is started. If set to full, this scan ignores any existing cache files. If set to false, no library scan is done when MusicHub is started. See the Reading audio files section for details. 
 
 	
+	/*
+	 * upnphttpserver
+	 */
+	@Required
+	private Integer mediaHttpPort = 9000;
 	
 	/*
 	 * GETTERS & SETTERS
@@ -64,6 +69,14 @@ public class Configuration implements Serializable {
 
 	public void setStartupScan(String startupScan) {
 		this.startupScan = startupScan;
+	}
+
+	public Integer getMediaHttpPort() {
+		return mediaHttpPort;
+	}
+
+	public void setMediaHttpPort(Integer mediaHttpPort) {
+		this.mediaHttpPort = mediaHttpPort;
 	}
 		
 }

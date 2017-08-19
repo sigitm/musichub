@@ -32,12 +32,16 @@ public class HttpServerServiceImpl extends MusicHubServiceImpl implements HttpSe
 	 * - vedere su minimserver anche come si comporta in caso di 404
 	 */
 	
-	//CONFIGURAZIONE
-	private static final int port = 9000;
+	private Integer port = null;
 	
 	private HttpServer server;
 	
 	private final static Logger logger = Logger.getLogger(HttpServerServiceImpl.class);
+	
+	public HttpServerServiceImpl() {
+		super();
+		this.port = getConfiguration().getMediaHttpPort();
+	}
 	
 	private IndexerService getIndexerService(){
 		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
@@ -135,7 +139,7 @@ public class HttpServerServiceImpl extends MusicHubServiceImpl implements HttpSe
 				+"<h1>Not Found</h1>"
 				+"<p>The requested URL "+path+" was not found on this server.</p>"
 				+"<hr>"
-				+"<address>MusicHub Server at "+hostName+"</address>"
+				+"<address>MusicHub Server at "+hostName+" Port "+port+"</address>"
 				+"</body></html>";
 				t.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, response.length());
 				OutputStream os = t.getResponseBody();

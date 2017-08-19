@@ -1,0 +1,33 @@
+
+TODO MusicHub
+- indexer: gestire il monitoring dei file e l'update temporizzato (v. Configuration)
+- upnpdiscovery: deve gestire i device (renderers) preferiti: setDefault, ordinamento dei renderer, criterio di scelta del renderer se il default non è disponibile, nickname del rendered (es. "sala")
+- NEW upnpcontroller: gestione di uno specifico renderer, comprensivo di update delle info (v.DroidUpnp). chi lo attiva??? uno per ogni device attivo? nessuno vieta che ce ne sia più di uno... (potrebbe anche essere una semplice classe richiamata dal coordinator)
+- NEW coordinator: VEDI SOTTO
+- <LOW> NEW configurator: sito web che permette di cambiare la configurazione, gestire i rendered...
+- <LOW> NEW main?? un modo per accettare alcuni parametri della Configuration da command line (in override su quella salvata)
+
+servizi necessari: (cooordinator?)
+- [discovery] getAvailableDevices (in ordine?)
+- [discovery] setSelectedDevice(nickname) oppure (udn) (influisce quando non è specificato il device nelle chiamate successive)
+- [search] searchSong(artist, title) [DA MIGLIORARE - ORA SOLO PROVA]
+- [discovery, controller] setSong (TODO) (opzionale: device)
+- [discovery, controller] play/stop/.. (opzionale: device)
+- [discovery, controller] getVolume/setVolume/mute/.. (opzionale: device)
+- 
+
+
+
+TODO android app (dimostrativa)
+--> una sorta di "control point remoto", anzi "terminale per il control point di MusicHub" (si potrebbe dire invece che MusicHub è un control point remoto)
+- stile DroidUpnp (dlna control point):
+  - gestione dei media server: invece di cling, usare i servizi REST di MusicHub
+  - gestione dei renderer: invece di cling, usare i servizi REST di MusicHub
+
+
+
+(importazione progetto droidupnp)
+- choco install android-sdk + un sacco di roba su SDK 26
+- eclipse: installare buildship gradle
+- eclipse: git checkout: https://github.com/trishika/DroidUPnP
+- eclipse: tasto dx: configure: add gradle nature
