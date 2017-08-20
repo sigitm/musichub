@@ -1,7 +1,7 @@
 
 TODO MusicHub
 - indexer: gestire il monitoring dei file e l'update temporizzato (v. Configuration)
-- upnpdiscovery: deve gestire i device (renderers) preferiti: setDefault, ordinamento dei renderer, criterio di scelta del renderer se il default non è disponibile, nickname del rendered (es. "sala")
+- upnpdiscovery: deve gestire i device (renderers) preferiti: setDefault, ordinamento dei renderer (PER ORA SOSPESO - serve?), criterio di scelta del renderer se il default non è disponibile (PER ORA SOSPESO - serve?), nickname del rendered (es. "sala")
 - NEW upnpcontroller: gestione di uno specifico renderer, comprensivo di update delle info (v.DroidUpnp). chi lo attiva??? uno per ogni device attivo? nessuno vieta che ce ne sia più di uno... (potrebbe anche essere una semplice classe richiamata dal coordinator)
 - NEW coordinator: VEDI SOTTO
 - <LOW> NEW configurator: sito web che permette di cambiare la configurazione, gestire i rendered...

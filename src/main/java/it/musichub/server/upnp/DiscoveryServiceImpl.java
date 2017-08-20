@@ -22,6 +22,8 @@ import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
+import it.musichub.server.upnp.ex.DeviceNotFoundException;
+import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
@@ -41,10 +43,13 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	private DeviceRegistry deviceRegistry = null;
 	private UpnpService upnpService = null;
 	
+	private final static String DEVICE_TYPE = "MediaRenderer";
+	private final static String SERVICE_TYPE = "AVTransport";
+	
 	private final static Logger logger = Logger.getLogger(DiscoveryServiceImpl.class);
 	
 	private static boolean isValidDevice(RemoteDevice device){
-		return new UDADeviceType("MediaRenderer").equals(device.getType()) && device.findService(new UDAServiceType("AVTransport")) != null;
+		return new UDADeviceType(DEVICE_TYPE).equals(device.getType()) && device.findService(new UDAServiceType(SERVICE_TYPE)) != null;
 	}
 	
 	private PersistenceService getPersistenceService(){
@@ -96,8 +101,8 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	public void start() {
 		// Send a search message to all devices and services, they should
 		// respond soon
-		for (UDADeviceType udaType : getDeviceTypes())
-			upnpService.getControlPoint().search(new UDADeviceTypeHeader(udaType));
+//		for (UDADeviceType udaType : getDeviceTypes())
+			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(DEVICE_TYPE)));
 	}
 
 	@Override
@@ -174,9 +179,16 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		}
 	};
 	
+
+	
 	@Override
 	public Device getSelectedDevice(){
 		return deviceRegistry.getSelectedDevice();
+	}
+	
+	@Override
+	public void setSelectedDevice(String udn) throws DeviceNotFoundException{
+		setSelectedDevice(getDevice(udn));
 	}
 	
 	@Override
@@ -185,8 +197,49 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	}
 	
 	@Override
+	public boolean isSelectedDeviceOnline() throws NoSelectedDeviceException{
+		Device device = getSelectedDevice();
+		if (device == null)
+			throw new NoSelectedDeviceException();
+		return isDeviceOnline(device);
+	}
+	
+	@Override
 	public void clearSelectedDevice(){
 		deviceRegistry.clearSelectedDevice();
 	}
+
+	@Override
+	public Device getDevice(String udn) throws DeviceNotFoundException {
+		Device device = deviceRegistry.get(udn);
+		if (device == null)
+			throw new DeviceNotFoundException("Device "+udn+" not found");
+		return device;
+	}
+
+	@Override
+	public Device getDeviceByCustomName(String customName) throws DeviceNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	}
+
+	@Override
+	public boolean isDeviceOnline(Device device){
+		return device.isOnline();
+	}
+	
+	@Override
+	public boolean isDeviceOnline(String udn) throws DeviceNotFoundException {
+		return isDeviceOnline(getDevice(udn));
+	}
+
+	@Override
+	public void setDeviceCustomName(String udn, String customName) throws DeviceNotFoundException {
+		Device device = getDevice(udn);
+		device.setCustomName(customName);
+	}
+	
+	
 
 }
