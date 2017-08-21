@@ -12,6 +12,7 @@ public class Device implements Serializable {
 	private String manifacturer;
 	private String modelName;
 	private	DeviceIcon[] icons;
+	private DeviceService[] services;
 	
 	private boolean online = false;
 	private Date lastSeenOnline = null;
@@ -58,6 +59,12 @@ public class Device implements Serializable {
 	}
 	public void setIcons(DeviceIcon[] icons) {
 		this.icons = icons;
+	}
+	public DeviceService[] getServices() {
+		return services;
+	}
+	public void setServices(DeviceService[] services) {
+		this.services = services;
 	}
 	public boolean isOnline() {
 		return online;

@@ -1,6 +1,6 @@
 package it.musichub.server.upnp;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -27,6 +27,7 @@ import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
+import it.musichub.server.upnp.model.DeviceService;
 
 public class DiscoveryServiceImpl extends MusicHubServiceImpl implements DiscoveryService {
 
@@ -210,6 +211,12 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	}
 
 	@Override
+	public List<Device> getDevices(){
+		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXX usare gli streams o fare refactoring del registry
+		return new ArrayList<Device>(deviceRegistry.values());
+	}
+	
+	@Override
 	public Device getDevice(String udn) throws DeviceNotFoundException {
 		Device device = deviceRegistry.get(udn);
 		if (device == null)
@@ -225,6 +232,15 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	}
 
 	@Override
+	public List<Device> getOnlineDevices(){
+		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXX usare gli streams o fare refactoring del registry
+		List<Device> d = new ArrayList<Device>();
+		for (Device device : deviceRegistry.values())
+			d.add(device);
+		return d;
+	}
+	
+	@Override
 	public boolean isDeviceOnline(Device device){
 		return device.isOnline();
 	}
@@ -238,6 +254,17 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	public void setDeviceCustomName(String udn, String customName) throws DeviceNotFoundException {
 		Device device = getDevice(udn);
 		device.setCustomName(customName);
+	}
+
+	@Override
+	public DeviceService getSelectedDeviceService(String serviceType) throws NoSelectedDeviceException {
+		Device device = getSelectedDevice();
+		DeviceService[] services = device.getServices();
+		for (DeviceService service : services){
+			if (service.getServiceType().equals(serviceType))
+				return service;
+		}
+		return null;
 	}
 	
 	

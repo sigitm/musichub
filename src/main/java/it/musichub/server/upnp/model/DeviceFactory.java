@@ -3,8 +3,11 @@ package it.musichub.server.upnp.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.model.meta.Icon;
 import org.fourthline.cling.model.meta.RemoteDevice;
+import org.fourthline.cling.model.meta.RemoteService;
+import org.fourthline.cling.model.types.UDN;
 
 public class DeviceFactory {
 	
@@ -25,8 +28,21 @@ public class DeviceFactory {
 			}
 			device.setIcons(icons.toArray(new DeviceIcon[]{}));
 		}
+		RemoteService[] clingServices = clingDevice.findServices();
+		if (clingServices != null && clingServices.length > 0){
+			List<DeviceService> services = new ArrayList<>();
+			for (RemoteService clingService : clingServices){
+				DeviceService service = DeviceServiceFactory.fromClingDeviceService(clingService);
+				services.add(service);
+			}
+			device.setServices(services.toArray(new DeviceService[]{}));
+		}
 		
 		return device;
+	}
+	
+	public static RemoteDevice toClingDevice(Device device, UpnpService upnpService){
+		return upnpService.getRegistry().getRemoteDevice(new UDN(device.getUdn()), true);
 	}
 	
 	public static void mergeFromDevice(Device oldDevice, Device newDevice){
