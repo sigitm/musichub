@@ -23,6 +23,14 @@ public class Constants implements Serializable {
 	public static final String LIBRARY_FILE_NAME = "library.xml";
 
 	/*
+	 * upnp generic
+	 */
+
+	public final static String UPNP_DEVICE_TYPE = "MediaRenderer";
+	public final static String UPNP_SERVICE_TYPE_AVTRANSPORT = "AVTransport";
+	public final static String UPNP_SERVICE_TYPE_RENDERINGCONTROL = "RenderingControl";
+	
+	/*
 	 * upnpdiscovery
 	 */
 	public static final String REGISTRY_FILE_NAME = "devices.xml";

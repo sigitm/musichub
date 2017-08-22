@@ -85,6 +85,15 @@ public class Device implements Serializable {
 		this.lastUpdate = lastUpdate;
 	}
 	
+	public DeviceService getFirstServiceByType(String serviceType){
+		if (services != null){
+			for (DeviceService service : services){
+				if (service.getServiceType().equals(serviceType))
+					return service;
+			}
+		}
+		return null;
+	}
 	
 	public void registerOnline(){
 		setOnline(true);

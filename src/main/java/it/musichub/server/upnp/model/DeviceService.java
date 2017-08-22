@@ -7,6 +7,7 @@ import org.fourthline.cling.model.meta.Service;
 
 public class DeviceService implements Serializable {
 
+	private String namespace;
 	private String serviceId;
 	private String serviceType;
 	
@@ -14,6 +15,14 @@ public class DeviceService implements Serializable {
 		super();
 	}
 
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+	
 	public String getServiceId() {
 		return serviceId;
 	}

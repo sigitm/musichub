@@ -44,13 +44,15 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	private DeviceRegistry deviceRegistry = null;
 	private UpnpService upnpService = null;
 	
-	private final static String DEVICE_TYPE = "MediaRenderer";
-	private final static String SERVICE_TYPE = "AVTransport";
-	
 	private final static Logger logger = Logger.getLogger(DiscoveryServiceImpl.class);
+
+	@Override
+	public UpnpService getUpnpService() {
+		return upnpService;
+	}
 	
 	private static boolean isValidDevice(RemoteDevice device){
-		return new UDADeviceType(DEVICE_TYPE).equals(device.getType()) && device.findService(new UDAServiceType(SERVICE_TYPE)) != null;
+		return new UDADeviceType(Constants.UPNP_DEVICE_TYPE).equals(device.getType());
 	}
 	
 	private PersistenceService getPersistenceService(){
@@ -103,7 +105,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		// Send a search message to all devices and services, they should
 		// respond soon
 //		for (UDADeviceType udaType : getDeviceTypes())
-			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(DEVICE_TYPE)));
+			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(Constants.UPNP_DEVICE_TYPE)));
 	}
 
 	@Override
@@ -180,7 +182,11 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		}
 	};
 	
-
+	
+	@Override
+	public boolean isDeviceSelected(){
+		return deviceRegistry.getSelectedDevice() != null;
+	}
 	
 	@Override
 	public Device getSelectedDevice(){

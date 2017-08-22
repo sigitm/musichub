@@ -2,6 +2,8 @@ package it.musichub.server.upnp;
 
 import java.util.List;
 
+import org.fourthline.cling.UpnpService;
+
 import it.musichub.server.runner.IMusicHubService;
 import it.musichub.server.upnp.ex.DeviceNotFoundException;
 import it.musichub.server.upnp.ex.NoSelectedDeviceException;
@@ -16,6 +18,8 @@ public interface DiscoveryService extends IMusicHubService {
 	 * metodi per ottenere la lista dei device, settare il selectedDevice, 
 	 * (POTREI FARE UN'INTERFACCIA INTERNAL PER L'USO INTERNO....SOLO DA ALTRI SERVIZI)
 	 */
+	public UpnpService getUpnpService();
+	
 	public List<Device> getDevices();
 	public Device getDevice(String udn) throws DeviceNotFoundException;
 	public Device getDeviceByCustomName(String customName) throws DeviceNotFoundException;
@@ -24,6 +28,7 @@ public interface DiscoveryService extends IMusicHubService {
 	public boolean isDeviceOnline(String udn) throws DeviceNotFoundException;
 	public void setDeviceCustomName(String udn, String customName) throws DeviceNotFoundException;
 
+	public boolean isDeviceSelected();
 	public Device getSelectedDevice();
 	public void setSelectedDevice(Device device); //TODO nascondere??
 	public void setSelectedDevice(String udn) throws DeviceNotFoundException;
