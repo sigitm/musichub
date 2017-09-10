@@ -1,0 +1,59 @@
+leggo il didl
+
+cerco la creazione del rendererCommand e la implemento nel discoveryService
+
+
+
+interfaccia:
+setPlaylist(List<Song> songs)     -- non riproduce, setta solo la playlist
+startPlaying()                    -- inizia a riprodurre la playlist (al suo interno chiama il commandPlay ecc..)
+
+
+il rendererCommand (o qualcun altro?) deve gestire la riproduzione della playlist.. avrà tutta una serie di comandi sulla playlist (play, next, previous, setShuffle(boolean), setRepeat(off/song/all), clearPlaylist, addSong, removeSong...)
+
+
+
+Il selectedDevice va a OFF -> renderedCommand.pause()
+Il selectedDevice va a OFF -> renderedCommand.resume()
+Cambio del selectedDevice -> distruzione del thread del rendererCommand e creazione di uno nuovo
+
+
+
+
+un oggetto Playlist potrebbe esssere un iterator!
+- deve fornire il successivo
+- deve rispondere a dei comandi
+
+al livello sopra ci sarà:
+- getPlaylist() //per ottenere la playlist corrente
+- setPlaylist(Playlist playlist) //per sostituire la playlist corrente con un'altra
+- savePlaylist(String name); //ha senso salvare anche i dati come la currentPosition, i songPointers, e il random? per ora si?
+- loadPlaylist(String name);
+
+
+--------
+TEST playlist
+
+Interface vs Programmatic
+(gli interface vanno forse messi da un'altra parte?? perchè devono controllare anche i comandi)
+
+SHUFFLE: OFF, REPEAT: OFF
+[next]
+I: rimane all'ultimo elemento all'infinito
+P: si ferma
+
+SHUFFLE: ON, REPEAT: OFF
+I: rimane fino all'ultimo elemento della lista random all'infinito
+P: si ferma (dopo l'ultimo random)
+
+SHUFFLE: OFF, REPEAT: TRACK
+I: riparte dall'inizio (funziona come un Repeat: ALL)
+P: ripete lo stesso brano
+
+SHUFFLE: OFF, REPEAT: ALL
+I: classico repeat all: riparte dall'inizio
+P: classico repeat all: riparte dall'inizio
+
+e se la playlist la faccio indipendente dal renderer? ma poi è unica?
+1. indipendente e unica. avrei un solo puntatore. non me ne faccio nulla
+2. dipendente dal renderer. gestione playlist indipendenti in caso di renderer multipli (sviluppo futuro)

@@ -27,7 +27,18 @@ import it.musichub.server.upnp.model.DeviceServiceFactory;
 public class ControllerServiceImpl extends MusicHubServiceImpl implements ControllerService {
 
 	/**
+	 * idee:
+	 * - il controller si mappa al selectedDevice. in fase di cambio si annullano i dati sullo stato e la coda di canzoni
+	 * - creo un thread apposito
+	 * - mantengo i dati dello stato e della playlist
+	 *   - come supporto le playlist? coda(queue) di canzoni? bubble invia il comando a fine canzone precedente
+	 * - due costanti che determinano la frequenza di refresh: in stato di play (1 sec.) e in stato di stop (maggiore.. o null?)
+	 * - in fase di richiesta info (es. stato del player) fornisco le info dalla cache (magari metto anche un metodo forceUpdate)
 	 * 
+	 * - OT: chi si accorge che un selectedDevice non è più online? il DiscoveryService lo sa---> allora il ControllerService deve essere notificato?
+	 *       o vive sempre prendendo ogni volta il selectedDevice corrente? ma sarebbe da annullare la cache...
+	 *       - potrei fare in update il check sul previousSelectedDevice... oppure modifico il DiscoveryService per notificarmi in caso di cambio selectedDevice
+	 *         oppure se il selectedDevice va offline 
 	 * ...
 	 * 
 	 */
