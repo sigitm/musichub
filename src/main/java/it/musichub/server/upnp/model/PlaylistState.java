@@ -48,6 +48,10 @@ public class PlaylistState implements IPlaylistState {
 	public synchronized boolean addSong(Song song){
 		songs.add(song);
 		songPointers.add(songs.size()-1);
+		
+		if (shuffle)
+			shuffle();
+		
 		return true; //as in Collection.add(...) specification
 	}
 	
@@ -257,7 +261,9 @@ public class PlaylistState implements IPlaylistState {
 	
 	@Override
 	public void shuffle() {
+		Integer songPointer = songPointers.get(currentPointer);
 		Collections.shuffle(songPointers);
+		currentPointer = songPointers.indexOf(songPointer);
 	}
 
 	@Override
