@@ -57,3 +57,9 @@ P: classico repeat all: riparte dall'inizio
 e se la playlist la faccio indipendente dal renderer? ma poi è unica?
 1. indipendente e unica. avrei un solo puntatore. non me ne faccio nulla
 2. dipendente dal renderer. gestione playlist indipendenti in caso di renderer multipli (sviluppo futuro)
+-----------
+
+IPOTESI
+- playlist thread???? per tenere d'occhio il cambio di state e riprodurre l'elemento successivo?? (Observer)
+  - e poi si distrugge a fine playlist??
+- 
