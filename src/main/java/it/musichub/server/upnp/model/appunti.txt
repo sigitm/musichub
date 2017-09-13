@@ -62,4 +62,32 @@ e se la playlist la faccio indipendente dal renderer? ma poi è unica?
 IPOTESI
 - playlist thread???? per tenere d'occhio il cambio di state e riprodurre l'elemento successivo?? (Observer)
   - e poi si distrugge a fine playlist??
-- 
+ --> MMMH, NO THREAD!  
+  
+
+playListState: play, pause, stop //// in alternativa: playlistActive = active, unactive
+
+commandStop --> setPlaylistState(stop)
+commandPlay --> setPlaylistState(play)
+
+playNext(): ottiene la next song della playlist e fa (stop??+)setURI+play
+
+
+nel thread:
+(dopo l'aggiornamento dello state tramite transportInfo)
+handlePlaylist():
+if playlist.hasNext() 
+- if state==stop && playlistState==play //la canzone precedente è finita
+  - playNext()
+- x
+XXXXXXXXXX
+
+
+
+
+
+
+
+
+
+GENA LastChange subscription: potrei intercettare gli STOP che non danno risultato NULL (quindi sono stati richiesti via telecomando?? VERIFICARE se funzionerebbe)
