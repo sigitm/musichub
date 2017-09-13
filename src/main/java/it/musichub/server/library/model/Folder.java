@@ -206,9 +206,13 @@ public class Folder implements Serializable {
 		return null;
 	}
 	
-	
+	public String getId(){
+		return Integer.toString(path.hashCode()); 
+	}
+
 	@Override
 	public String toString() {
 		return "Folder [" + name + " (" + relativePath + ")]";
 	}
+	
 }

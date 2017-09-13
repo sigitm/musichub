@@ -83,11 +83,12 @@ if playlist.hasNext()
 XXXXXXXXXX
 
 
+come creo un TrackMetadata da una Song??????????
 
 
 
 
-
-
-
+Aggiunta:
 GENA LastChange subscription: potrei intercettare gli STOP che non danno risultato NULL (quindi sono stati richiesti via telecomando?? VERIFICARE se funzionerebbe)
+
+

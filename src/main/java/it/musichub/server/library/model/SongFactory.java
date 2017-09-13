@@ -3,6 +3,11 @@ package it.musichub.server.library.model;
 import java.io.File;
 import java.io.IOException;
 
+import org.fourthline.cling.support.model.PersonWithRole;
+import org.fourthline.cling.support.model.Res;
+import org.fourthline.cling.support.model.item.MusicTrack;
+import org.seamless.util.MimeType;
+
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
@@ -79,6 +84,27 @@ public class SongFactory {
 			//Nothing to do
 		}
 		return year;
+	}
+	
+	public static MusicTrack toMusicTrack(Song song){
+        String album = song.getAlbum();
+        String creator = song.getArtist(); // Required
+        PersonWithRole artist = new PersonWithRole(creator, "Performer");
+        String title = song.getTitle();
+        
+        MimeType mimeType = new MimeType("audio", "mpeg");
+
+        MusicTrack mt = new MusicTrack(
+        		song.getId(), // Item ID,
+        		song.getFolder().getId(), // parent Container ID
+                title, creator, album, artist,
+                new Res(mimeType, song.getSize(), song.getLengthHhMmSs(), song.getBitrate().longValue(), "http://10.0.0.1/files/101.mp3")
+        );
+
+		
+		return mt;
+		
+//		return new TrackMetadata(Integer.toString(song.getId()), song.getTitle(), song.getArtist(), song.getGenre(), artURI, res, "object.item.audioItem");
 	}
 	
 }

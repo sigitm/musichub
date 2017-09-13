@@ -155,6 +155,7 @@ public class Song implements Serializable {
 	}
 	
 	
+	
 	/**
 	 * Verifica se il parsing della canzone è aggiornato
 	 * 
@@ -178,8 +179,17 @@ public class Song implements Serializable {
 		return false;
 	}
 
+	public String getLengthHhMmSs() {
+		return String.format("%02d:%02d:%02d", length / 3600, (length % 3600) / 60, (length % 60));
+	}
+	
+	public String getId(){
+		return Integer.toString(path.hashCode()); 
+	}
+
 	@Override
 	public String toString() {
 		return "Song [" + artist + " - "+ title + " (" + relativePath + ")]";
 	}
+	
 }
