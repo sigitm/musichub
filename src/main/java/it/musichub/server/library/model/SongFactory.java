@@ -41,6 +41,7 @@ public class SongFactory {
 		String genre = null;
 		Integer rating = null;
 		byte[] albumImage = null;
+		String albumImageMimeType = null;
 		if (mp3file.hasId3v1Tag()){
 			song.setId3v1(true);
 			ID3v1 tag = mp3file.getId3v1Tag();
@@ -51,7 +52,10 @@ public class SongFactory {
 				tag = tagv2;
 				if (tagv2.getWmpRating() > -1)
 					rating = tagv2.getWmpRating();
-				albumImage = tagv2.getAlbumImage();
+				if (tagv2.getAlbumImage() != null){
+					albumImage = tagv2.getAlbumImage();
+					albumImageMimeType = tagv2.getAlbumImageMimeType();
+				}
 			}
 			title = tag.getTitle();
 			artist = tag.getArtist();
@@ -72,6 +76,7 @@ public class SongFactory {
 		song.setGenre(genre);
 		song.setRating(rating);
 		song.setAlbumImage(albumImage);
+		song.setAlbumImageMimeType(albumImageMimeType);
 		
 		return song;
 	}

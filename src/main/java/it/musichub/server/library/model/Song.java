@@ -32,6 +32,7 @@ public class Song implements Serializable {
 	private String genre;
 	private Integer rating;
 	private byte[] albumImage;
+	private String albumImageMimeType;
 	
 	public File getFile() {
 		return file;
@@ -153,7 +154,12 @@ public class Song implements Serializable {
 	public void setAlbumImage(byte[] albumImage) {
 		this.albumImage = albumImage;
 	}
-	
+	public String getAlbumImageMimeType() {
+		return albumImageMimeType;
+	}
+	public void setAlbumImageMimeType(String albumImageMimeType) {
+		this.albumImageMimeType = albumImageMimeType;
+	}
 	
 	
 	/**
