@@ -20,11 +20,10 @@
 package it.musichub.server.upnp.model.x;
 
 import org.apache.log4j.Logger;
-import org.droidupnp.Main;
-import org.droidupnp.model.cling.CDevice;
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpResponse;
+import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.meta.Service;
 import org.fourthline.cling.model.types.UDAServiceType;
 import org.fourthline.cling.support.avtransport.callback.GetMediaInfo;
@@ -49,6 +48,12 @@ import org.fourthline.cling.support.renderingcontrol.callback.GetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.GetVolume;
 import org.fourthline.cling.support.renderingcontrol.callback.SetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.SetVolume;
+
+import it.musichub.server.runner.ServiceFactory;
+import it.musichub.server.upnp.DiscoveryService;
+import it.musichub.server.upnp.ex.NoSelectedDeviceException;
+import it.musichub.server.upnp.model.Device;
+import it.musichub.server.upnp.model.DeviceFactory;
 
 @SuppressWarnings("rawtypes")
 public class RendererCommand implements Runnable, IRendererCommand {
@@ -96,22 +101,38 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			thread.interrupt();
 	}
 
-	public static Service getRenderingControlService()
-	{
-		if (Main.upnpServiceController.getSelectedRenderer() == null)
+	private static DiscoveryService getDiscoveryService(){
+		return (DiscoveryService) ServiceFactory.getServiceInstance(it.musichub.server.runner.ServiceRegistry.Service.upnpdiscovery);
+	}
+	
+	public static Service getRenderingControlService() {
+		DiscoveryService ds = getDiscoveryService();
+		try {
+			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
+				return null;
+		} catch (NoSelectedDeviceException e) {
+			logger.error("error asking if selected device is offline", e); ////TODO XXX sistemare........
 			return null;
+		}
 
-		return ((CDevice) Main.upnpServiceController.getSelectedRenderer()).getDevice().findService(
-				new UDAServiceType("RenderingControl"));
+		Device device = ds.getSelectedDevice();
+		RemoteDevice clingDevice = DeviceFactory.toClingDevice(device, ds.getUpnpService());
+		return clingDevice.findService(new UDAServiceType("RenderingControl"));
 	}
 
-	public static Service getAVTransportService()
-	{
-		if (Main.upnpServiceController.getSelectedRenderer() == null)
+	public static Service getAVTransportService() {
+		DiscoveryService ds = getDiscoveryService();
+		try {
+			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
+				return null;
+		} catch (NoSelectedDeviceException e) {
+			logger.error("error asking if selected device is offline", e); ////TODO XXX sistemare........
 			return null;
+		}
 
-		return ((CDevice) Main.upnpServiceController.getSelectedRenderer()).getDevice().findService(
-				new UDAServiceType("AVTransport"));
+		Device device = ds.getSelectedDevice();
+		RemoteDevice clingDevice = DeviceFactory.toClingDevice(device, ds.getUpnpService());
+		return clingDevice.findService(new UDAServiceType("AVTransport"));
 	}
 
 	@Override
@@ -341,6 +362,38 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			public void callback()
 			{
 				setURI(item.getURI(), trackMetadata);
+			}
+		});
+
+	}
+	
+	@Override
+	public void launchItem2(final TrackMetadata trackMetadata)
+	{
+		if (getAVTransportService() == null)
+			return;
+
+		logger.info("TrackMetadata : "+trackMetadata.toString());
+
+		// Stop playback before setting URI
+		controlPoint.execute(new Stop(getAVTransportService()) {
+			@Override
+			public void success(ActionInvocation invocation)
+			{
+				/*verbose*/logger.debug("Success stopping ! ");
+				callback();
+			}
+
+			@Override
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
+			{
+				logger.warn("Fail to stop ! " + arg2);
+				callback();
+			}
+
+			public void callback()
+			{
+				setURI(trackMetadata.res, trackMetadata);
 			}
 		});
 

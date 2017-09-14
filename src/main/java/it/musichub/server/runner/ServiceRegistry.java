@@ -28,9 +28,9 @@ public class ServiceRegistry {
 		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
 //			addArg("startingDir", String.class);
 		}});
-//		put(Service.search, new ServiceDefinition(SongsSearch.class));
-//		put(Service.upnpdiscovery, new ServiceDefinition(DiscoveryServiceImpl.class));
-		put(Service.upnphttpserver, new ServiceDefinition(HttpServerServiceImpl.class));
+		put(Service.search, new ServiceDefinition(SongsSearch.class));
+		put(Service.upnpdiscovery, new ServiceDefinition(DiscoveryServiceImpl.class));
+//		put(Service.upnphttpserver, new ServiceDefinition(HttpServerServiceImpl.class));
 	}};
 	
 	protected static class ServiceDefinition {

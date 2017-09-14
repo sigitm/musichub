@@ -33,7 +33,7 @@ public class DeviceRegistry extends HashMap<String, Device> {
 	}
 	
 	public void setSelectedDevice(Device device){
-		if (device == null || device.getUdn() == null || get(device) == null)
+		if (device == null || device.getUdn() == null || get(device.getUdn()) == null)
 			throw new IllegalArgumentException("Invalid device "+device);
 		
 		this.selectedDevice = device.getUdn();
@@ -43,11 +43,26 @@ public class DeviceRegistry extends HashMap<String, Device> {
 		this.selectedDevice = null;
 	}
 	
+	public boolean isDeviceSelected(){
+		return selectedDevice != null;
+	}
+	
+	public boolean isDeviceSelected(Device device){
+		if (device == null || device.getUdn() == null || get(device) == null)
+			throw new IllegalArgumentException("Invalid device "+device);
+		
+		if (!isDeviceSelected())
+			return false;
+		
+		Device selectedDevice = getSelectedDevice();
+		return device.getUdn().equals(selectedDevice.getUdn());
+	}
+	
 	@Override
 	public Device remove(Object key) {
 		Device result = super.remove(key);
 		
-		if (result != null && result.getUdn() != null && result.getUdn().equals(selectedDevice))
+		if (result != null && isDeviceSelected(result))
 			clearSelectedDevice();
 		
 		return result;

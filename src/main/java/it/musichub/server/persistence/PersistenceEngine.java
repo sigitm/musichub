@@ -21,6 +21,7 @@ import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceIcon;
 import it.musichub.server.upnp.model.DeviceRegistry;
+import it.musichub.server.upnp.model.DeviceService;
 
 public class PersistenceEngine extends MusicHubServiceImpl implements PersistenceService {
 	
@@ -49,6 +50,7 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 		xstream.allowTypeHierarchy(DeviceRegistry.class);
 		xstream.allowTypeHierarchy(Device.class);
 		xstream.allowTypeHierarchy(DeviceIcon.class);
+		xstream.allowTypeHierarchy(DeviceService.class);
 //		xstream.addPermission(AnyTypePermission.ANY);
 		xstream.alias("folder", Folder.class);
 		xstream.alias("song", Song.class);

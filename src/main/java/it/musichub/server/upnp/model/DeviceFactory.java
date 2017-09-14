@@ -42,7 +42,7 @@ public class DeviceFactory {
 	}
 	
 	public static RemoteDevice toClingDevice(Device device, UpnpService upnpService){
-		return upnpService.getRegistry().getRemoteDevice(new UDN(device.getUdn()), true);
+		return upnpService.getRegistry().getRemoteDevice(UDN.valueOf(device.getUdn()), true);
 	}
 	
 	public static void mergeFromDevice(Device oldDevice, Device newDevice){

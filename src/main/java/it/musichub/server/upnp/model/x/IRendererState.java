@@ -27,6 +27,10 @@ public interface IRendererState {
 		PLAY, PAUSE, STOP
 	}
 
+	public void reset();
+	
+	
+	
 	public State getState();
 
 	void setState(State state);

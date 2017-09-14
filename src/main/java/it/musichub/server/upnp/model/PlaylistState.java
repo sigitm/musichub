@@ -248,6 +248,21 @@ public class PlaylistState implements IPlaylistState {
 
 		return getCurrentSong();
 	}
+	
+	@Override
+	public synchronized Song selectPos(int pos){
+		if (songPointers.isEmpty()){
+			currentPointer = null; //should be null already
+			return null;
+		}
+		
+		if (pos < 0 || pos > songPointers.size()-1)
+			return null;
+		
+		currentPointer = songPointers.indexOf(pos);
+		
+		return getCurrentSong();
+	}
 
 	@Override
 	public boolean getShuffle() {

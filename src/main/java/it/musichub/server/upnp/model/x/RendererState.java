@@ -25,34 +25,41 @@ import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.TransportInfo;
 import org.fourthline.cling.support.model.TransportState;
 
-public class RendererState /*extends ARendererState*/implements IRendererState {
+import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.PlaylistState;
 
-//	protected static final String TAG = "RendererState";
+public class RendererState implements IRendererState {
+
 	private final static Logger logger = Logger.getLogger(RendererState.class);
-
-	public RendererState()
-	{
-		super();
-
-		state = State.STOP;
-		volume = -1;
-		resetTrackInfo();
-
-//		notifyAllObservers();
-	}
 
 	// / Player info
 	private State state;
 	private int volume;
 	private boolean mute;
-	private int repeatMode; // TODO enum with different mode
-	private int randomMode; // TODO enum with different mode
+	private IPlaylistState playlistState;
 
 	// / Track info
 	private PositionInfo positionInfo;
 	private MediaInfo mediaInfo;
 	private TransportInfo transportInfo;
 
+	public RendererState()
+	{
+		super();
+
+		reset();
+
+//		notifyAllObservers();
+	}
+	
+	@Override
+	public void reset(){
+		state = State.STOP;
+		volume = -1;
+		playlistState = new PlaylistState();
+		resetTrackInfo();
+	}
+	
 	// / Getter/Setter
 
 	@Override
@@ -107,6 +114,14 @@ public class RendererState /*extends ARendererState*/implements IRendererState {
 
 		this.mute = mute;
 //		notifyAllObservers();
+	}
+	
+	public IPlaylistState getPlaylistState() {
+		return playlistState;
+	}
+
+	public void setPlaylistState(IPlaylistState playlistState) {
+		this.playlistState = playlistState;
 	}
 
 	public void setPositionInfo(PositionInfo positionInfo)
@@ -219,8 +234,8 @@ public class RendererState /*extends ARendererState*/implements IRendererState {
 	@Override
 	public String toString()
 	{
-		return "RendererState [state=" + state + ", volume=" + volume + ", repeatMode=" + repeatMode + ", randomMode="
-				+ randomMode + ", positionInfo=" + positionInfo + ", mediaInfo=" + mediaInfo + ", trackMetadata="
+		return "RendererState [state=" + state + ", volume=" + volume + ", repeatMode=" + /*repeatMode + ", randomMode="
+				+ randomMode + */", positionInfo=" + positionInfo + ", mediaInfo=" + mediaInfo + ", trackMetadata="
 				+ new TrackMetadata(positionInfo.getTrackMetaData()) + "]";
 	}
 

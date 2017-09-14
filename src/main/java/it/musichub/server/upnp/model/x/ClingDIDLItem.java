@@ -19,34 +19,74 @@
 
 package it.musichub.server.upnp.model.x;
 
+import org.fourthline.cling.support.model.DIDLObject;
 import org.fourthline.cling.support.model.item.Item;
 
-public class ClingDIDLItem extends ClingDIDLObject implements IDIDLItem {
+public class ClingDIDLItem /*extends ClingDIDLObject*/ implements IDIDLItem {
 
 	private static final String TAG = "ClingDIDLItem";
 
 	public ClingDIDLItem(Item item)
 	{
-		super(item);
+//		super(item);
 	}
 
 	@Override
 	public int getIcon()
 	{
-//		return R.drawable.ic_file;
-		//TODO XXXXXXXXXXXXXXXXXXXXXX
-		return -1;
+		return -1;//R.drawable.ic_file;
 	}
 
 	@Override
 	public String getURI()
 	{
-		if (item != null)
-		{
-			logger.debug("Item : " + item.getFirstResource().getValue());
-			if (item.getFirstResource() != null && item.getFirstResource().getValue() != null)
-				return item.getFirstResource().getValue();
-		}
+//		if (item != null)
+//		{
+//			Log.d(TAG, "Item : " + item.getFirstResource().getValue());
+//			if (item.getFirstResource() != null && item.getFirstResource().getValue() != null)
+//				return item.getFirstResource().getValue();
+//		}
+		return null;
+	}
+	
+	public DIDLObject getObject(){
+		return new DIDLObject() {
+		};
+	}
+
+	@Override
+	public String getDataType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTitle() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getDescription() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getCount() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getParentID() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getId() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

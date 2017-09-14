@@ -31,6 +31,7 @@ public interface IPlaylistState {
 	Song previous();
 	Song first();
 	Song last();
+	Song selectPos(int pos);
 	
 	
 	//TODO XXX XXXXXXXXXX DECIDERE SE TENERE QUI... sarebbero i comandi da interfaccia (con regole diverse!)

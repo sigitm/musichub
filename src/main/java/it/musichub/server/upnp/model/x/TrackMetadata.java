@@ -107,7 +107,7 @@ public class TrackMetadata {
 			s.setOutput(sw);
 
 			s.startDocument(null,null);
-			s.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+//			s.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
 
 			//start a tag called "root"
 			s.startTag(null, "DIDL-Lite");

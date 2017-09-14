@@ -1,7 +1,10 @@
 package it.musichub.server.upnp;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.fourthline.cling.UpnpService;
@@ -10,11 +13,15 @@ import org.fourthline.cling.model.message.header.UDADeviceTypeHeader;
 import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDADeviceType;
-import org.fourthline.cling.model.types.UDAServiceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
+import org.fourthline.cling.support.model.item.MusicTrack;
 
+import fi.iki.elonen.NanoHTTPD;
 import it.musichub.server.config.Constants;
+import it.musichub.server.library.IndexerService;
+import it.musichub.server.library.model.Folder;
+import it.musichub.server.library.model.Song;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
@@ -28,6 +35,10 @@ import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
+import it.musichub.server.upnp.model.UpnpFactory;
+import it.musichub.server.upnp.model.x.IRendererCommand;
+import it.musichub.server.upnp.model.x.IRendererState;
+import it.musichub.server.upnp.model.x.TrackMetadata;
 
 public class DiscoveryServiceImpl extends MusicHubServiceImpl implements DiscoveryService {
 
@@ -43,6 +54,9 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	 */
 	private DeviceRegistry deviceRegistry = null;
 	private UpnpService upnpService = null;
+	private IRendererState rendererState = null;
+	private IRendererCommand rendererCommand = null;
+	private WebServer httpServer = null;
 	
 	private final static Logger logger = Logger.getLogger(DiscoveryServiceImpl.class);
 
@@ -57,6 +71,10 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	
 	private PersistenceService getPersistenceService(){
 		return (PersistenceService) ServiceFactory.getServiceInstance(Service.persistence);
+	}
+	
+	private IndexerService getIndexerService(){
+		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
 	}
 	
 	private void loadFromDisk(){
@@ -94,10 +112,16 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 			deviceRegistry = new DeviceRegistry();
 
 		
-		// UPnP discovery is asynchronous, we need a callback
+		//creating UPnP discovery with a callback
 		RegistryListener listener = new MediaRenderersListener();
-
 		upnpService = new UpnpServiceImpl(listener);
+		
+		//creating renderer state and command
+		rendererState = UpnpFactory.createRendererState();
+		rendererCommand = UpnpFactory.createRendererCommand(upnpService.getControlPoint(), rendererState);
+		
+		//creating http server
+		httpServer = new WebServer(getConfiguration().getMediaHttpPort());
 	}
 
 	@Override
@@ -106,10 +130,58 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		// respond soon
 //		for (UDADeviceType udaType : getDeviceTypes())
 			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(Constants.UPNP_DEVICE_TYPE)));
+			
+		//init http server
+        try {
+        	httpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+        } catch (IOException ioe) {
+            logger.error("Couldn't start server",ioe);
+//            System.exit(-1);
+            return;
+        }
+
+        
+
+        
+        //EXPERIMENT ---------------------------------------------
+        try {
+			TimeUnit.SECONDS.sleep(2);
+		} catch (Exception e) {}
+        
+        IndexerService is = getIndexerService();
+        Folder root = is.getStartingFolder();
+        Song song0 = root.getSongs().get(0);
+        
+//        Collection<Device> devices = deviceRegistry.values();
+//        Device device0 = null;
+        try {
+			setSelectedDevice("uuid:5f9ec1b3-ed59-1900-4530-00a0deb52729");
+		} catch (DeviceNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+//        for (Device device : devices){
+//        	if (isDeviceOnline(device)){
+//        		setSelectedDevice(device);
+////        		device0 = device;
+//        	}
+//        }
+        rendererCommand.resume();
+        try {
+			TimeUnit.SECONDS.sleep(6);
+		} catch (Exception e) {}
+        MusicTrack mt = UpnpFactory.songToMusicTrack(httpServer, song0);
+        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(httpServer, mt, song0);
+        rendererCommand.launchItem2(trackMetadata);
+
+        
+		
 	}
 
 	@Override
 	public void stop() {
+		httpServer.stop();
+		
 		upnpService.shutdown();
 		
 		saveToDisk();
@@ -117,7 +189,12 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 
 	@Override
 	public void destroy() {
+		httpServer = null;
+		
 		upnpService = null;
+		rendererState = null;
+		rendererCommand = null;
+		
 		deviceRegistry = null;
 	}
 	

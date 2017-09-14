@@ -18,7 +18,7 @@ public class Test {
 		String startingDirStr2 = "D:\\users\\msigismondi.INT\\Desktop";
 		try {
 			if ("SIGIQC".equals(InetAddress.getLocalHost().getHostName())){
-				startingDirStr = "N:\\incoming\\##mp3 new";
+				startingDirStr = "N:\\incoming\\##mp3 new\\ESPERIMENTI - da cancellare";
 				startingDirStr2 = "N:\\incoming\\##mp3 new\\Zucchero TODO\\Zucchero - Greatest Hits (1996)NLT-Release";
 			}else if ("SARANB".equals(InetAddress.getLocalHost().getHostName())){
 				startingDirStr = "C:\\Users\\Sara\\Desktop";
@@ -31,7 +31,7 @@ public class Test {
 		
 		ServiceFactory sf = ServiceFactory.getInstance();
 		sf.init();
-//		sf.getConfiguration().setContentDir(startingDirStr);
+		sf.getConfiguration().setContentDir(startingDirStr);
 		sf.start();
 		
 //		try {

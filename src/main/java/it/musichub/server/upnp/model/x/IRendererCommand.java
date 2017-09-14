@@ -53,6 +53,7 @@ public interface IRendererCommand {
 
 	// / URI
 	public void launchItem(final IDIDLItem uri);
+	public void launchItem2(final TrackMetadata trackMetadata);
 
 	// / Full
 	public void updateFull();
