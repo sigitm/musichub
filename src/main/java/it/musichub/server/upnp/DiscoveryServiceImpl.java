@@ -110,7 +110,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		loadFromDisk();
 		if (deviceRegistry == null)
 			deviceRegistry = new DeviceRegistry();
-
+		deviceRegistry.resetOnlines();
 		
 		//creating UPnP discovery with a callback
 		RegistryListener listener = new MediaRenderersListener();
@@ -152,27 +152,31 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
         Folder root = is.getStartingFolder();
         Song song0 = root.getSongs().get(0);
         
-//        Collection<Device> devices = deviceRegistry.values();
-//        Device device0 = null;
-        try {
-			setSelectedDevice("uuid:5f9ec1b3-ed59-1900-4530-00a0deb52729");
-		} catch (DeviceNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-//        for (Device device : devices){
-//        	if (isDeviceOnline(device)){
-//        		setSelectedDevice(device);
-////        		device0 = device;
-//        	}
-//        }
-        rendererCommand.resume();
+        Collection<Device> devices = deviceRegistry.values();
+        for (Device device : devices){
+        	if (isDeviceOnline(device)){
+        		setSelectedDevice(device);
+        		logger.fatal("Selected device "+device.getFriendlyName());
+        	}
+        }
+        if (!isDeviceSelected()){
+	        try {
+	        	logger.fatal("Manually selecting device...");
+				setSelectedDevice("uuid:5f9ec1b3-ed59-1900-4530-00a0deb52729");
+			} catch (DeviceNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        }
+
+//        rendererCommand.resume();
         try {
 			TimeUnit.SECONDS.sleep(6);
 		} catch (Exception e) {}
         MusicTrack mt = UpnpFactory.songToMusicTrack(httpServer, song0);
         TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(httpServer, mt, song0);
         rendererCommand.launchItem2(trackMetadata);
+        //TODO Provare una trackMetadata fatta a mano...
 
         
 		
@@ -278,6 +282,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	@Override
 	public void setSelectedDevice(Device device){
 		deviceRegistry.setSelectedDevice(device);
+		rendererCommand.resume();
 	}
 	
 	@Override
@@ -291,6 +296,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	@Override
 	public void clearSelectedDevice(){
 		deviceRegistry.clearSelectedDevice();
+		rendererCommand.pause();
 	}
 
 	@Override

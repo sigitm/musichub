@@ -58,6 +58,11 @@ public class DeviceRegistry extends HashMap<String, Device> {
 		return device.getUdn().equals(selectedDevice.getUdn());
 	}
 	
+	public void resetOnlines(){
+		for (Device device : this.values())
+			device.registerOffline();
+	}
+	
 	@Override
 	public Device remove(Object key) {
 		Device result = super.remove(key);

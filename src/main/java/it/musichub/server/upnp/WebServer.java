@@ -1,6 +1,5 @@
 package it.musichub.server.upnp;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,15 +9,12 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.seamless.util.MimeType;
 
 import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.SimpleWebServer;
-import fi.iki.elonen.NanoHTTPD.Response;
 import it.musichub.server.config.Configuration;
 import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
