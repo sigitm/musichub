@@ -25,6 +25,7 @@ import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
+import it.musichub.server.upnp.DiscoveryService;
 
 public class ServiceFactory {
 
@@ -173,13 +174,25 @@ public class ServiceFactory {
 		Scanner sc = new Scanner(System.in);
 		while (true) {
 			String command = sc.nextLine();
-			if ("stop".equalsIgnoreCase(command) || "exit".equalsIgnoreCase(command)) {
-				logger.info("Terminating program by stop request... ");
+			if ("pause".equalsIgnoreCase(command)) {
+				getDiscoveryService().getRendererCommand().commandPause();
+			}else if ("play".equalsIgnoreCase(command)) {
+				getDiscoveryService().getRendererCommand().commandPlay();
+			}else if ("mute".equalsIgnoreCase(command)) {
+				getDiscoveryService().getRendererCommand().toggleMute();
+			}else if ("stop".equalsIgnoreCase(command)) {
+				getDiscoveryService().getRendererCommand().commandStop();
+			}else if ("exit".equalsIgnoreCase(command)) {
+				logger.info("Terminating program by exit request... ");
 				sc.close();
 				shutdown();
 				break;
 			}
 		}
+	}
+	
+	private DiscoveryService getDiscoveryService(){
+		return (DiscoveryService) ServiceFactory.getServiceInstance(Service.upnpdiscovery);
 	}
 	
 	private static interface ShutdownHook{

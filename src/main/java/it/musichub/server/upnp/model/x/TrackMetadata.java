@@ -7,9 +7,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.InputSource;
 import org.apache.log4j.Logger;
+import org.fourthline.cling.support.model.Res;
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -19,30 +20,36 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class TrackMetadata {
 
-//	protected static final String TAG = "TrackMetadata";
 	private final static Logger logger = Logger.getLogger(TrackMetadata.class);
 
+	public String id;
+	public String parentId;
+	public String title;
+	public String artist;
+	public String genre;
+	public String artURI;
+	public Res res;
+	public String itemClass;
+	
 	@Override
 	public String toString()
 	{
-		return "TrackMetadata [id=" + id + ", title=" + title + ", artist=" + artist + ", genre=" + genre + ", artURI="
-				+ artURI + "res=" + res + ", itemClass=" + itemClass + "]";
+		return "TrackMetadata [id=" + id + ", parentId=" + parentId + ", title=" + title + ", artist=" + artist + ", genre=" + genre + ", artURI="
+				+ artURI + ", res.value=" + res.getValue() + ", itemClass=" + itemClass + "]";
 	}
 
-	public TrackMetadata(String xml)
-	{
+	public TrackMetadata(String xml) {
 		parseTrackMetadata(xml);
 	}
 
-	public TrackMetadata()
-	{
+	public TrackMetadata() {
 	}
 
-	public TrackMetadata(String id, String title, String artist, String genre, String artURI, String res,
-			String itemClass)
-	{
+	public TrackMetadata(String id, String parentId, String title, String artist, String genre, String artURI,
+			Res res, String itemClass) {
 		super();
 		this.id = id;
+		this.parentId = parentId;
 		this.title = title;
 		this.artist = artist;
 		this.genre = genre;
@@ -50,14 +57,6 @@ public class TrackMetadata {
 		this.res = res;
 		this.itemClass = itemClass;
 	}
-
-	public String id;
-	public String title;
-	public String artist;
-	public String genre;
-	public String artURI;
-	public String res;
-	public String itemClass;
 
 	private XMLReader initializeReader() throws ParserConfigurationException, SAXException
 	{
@@ -118,7 +117,7 @@ public class TrackMetadata {
 
 			s.startTag(null, "item");
 			s.attribute(null, "id", ""+id);
-			s.attribute(null, "parentID", "");
+			s.attribute(null, "parentID", ""+parentId);
 			s.attribute(null, "restricted", "1");
 
 			if(title!=null)
@@ -145,7 +144,7 @@ public class TrackMetadata {
 			if(artURI!=null)
 			{
 				s.startTag(null, "upnp:albumArtURI");
-				s.attribute(null, "dlna:profileID", "JPEG_TN");
+				s.attribute(null, "dlna:profileID", "JPEG_TN"); //TODO: should use different album arts based on size: e.g. https://yabb.jriver.com/interact/index.php?topic=73954.0
 				s.text(artURI);
 				s.endTag(null, "upnp:albumArtURI");
 			}
@@ -153,7 +152,15 @@ public class TrackMetadata {
 			if(res!=null)
 			{
 				s.startTag(null, "res");
-				s.text(res);
+				if (res.getBitrate() != null)
+					s.attribute(null, "bitrate", Long.toString(res.getBitrate()));
+				if (res.getDuration() != null)
+					s.attribute(null, "duration", res.getDuration());
+				if (res.getSize() != null)
+					s.attribute(null, "size", Long.toString(res.getSize()));
+				if (res.getProtocolInfo() != null)
+					s.attribute(null, "protocolInfo", res.getProtocolInfo().toString());
+				s.text(res.getValue());
 				s.endTag(null, "res");
 			}
 
@@ -227,7 +234,7 @@ public class TrackMetadata {
 			}
 			else if (localName.equals("res"))
 			{
-				res = buffer.toString();
+//				res = buffer.toString();
 			}
 		}
 

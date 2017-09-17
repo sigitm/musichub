@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -28,33 +31,69 @@ public class WebServer extends NanoHTTPD {
 
 	private final static Logger logger = Logger.getLogger(HttpServerServiceImpl.class);
 	
+	private String hostname = null;
 	private int port = -1;
 	
 	public WebServer(int port) {
 		super(port);
+		this.hostname = getHostAddress();
 		this.port = port;
 	}
-//	public WebServer(String hostname, int port) {
-//		super(hostname, port);
-//		// TODO Auto-generated constructor stub
-//	}
+
+	public WebServer(String hostname, int port) {
+		super(hostname, port);
+		this.hostname = hostname;
+		this.port = port;
+	}
+	
+	private String getHostAddress(){
+		String host = null;
+		try {
+			DatagramSocket socket = new DatagramSocket();
+			socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+			host = socket.getLocalAddress().getHostAddress();
+			socket.close();
+		} catch (SocketException | UnknownHostException e) {
+			logger.warn("Error retrieving host name by choosing default route address", e);
+		}
+		if (host == null){
+			try {
+				host = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e) {
+				logger.warn("Error retrieving host name by looking for localhost", e);
+			}
+		}
+
+		return host;
+	}
+	
 	
 	public static final String CONTEXT_MUSIC = "/music";
 	public static final String CONTEXT_ALBUM_ART = "/art";
 	
-	//TODO xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx farli richiamare dal UpnpService passato in input?
-	public static Configuration getConfiguration(){
-		return ServiceFactory.getInstance().getConfiguration();
-	}
 	private IndexerService getIndexerService(){
 		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
+	}
+	
+	private static String getAlbumArtFileName(){
+		return "picture.jpg";
 	}
 	
 	@Override
 	public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 		
 		String context = uri.substring(0, uri.indexOf("/", uri.indexOf("/")+1));
-		String path = uri.substring(uri.indexOf("/", uri.indexOf("/")+1)+1);
+		String originalPath = uri.substring(uri.indexOf("/", uri.indexOf("/")+1)+1);
+		String path = originalPath;
+		
+		//ALBUM-ART
+		if (CONTEXT_ALBUM_ART.equals(context)){
+			String imageUrlPart = "/"+getAlbumArtFileName();
+			if (path.indexOf(imageUrlPart) < 0)
+				return getNotFoundResponse(originalPath);
+			path = path.substring(0, path.indexOf(imageUrlPart));
+		}
+		
 		String folderPath = FileUtils.extractPath(path);
 		String filename = FileUtils.extractFilename(path);
 		
@@ -77,22 +116,7 @@ public class WebServer extends NanoHTTPD {
 			return newFixedLengthResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "Forbidden: unknown context /"+context);
 		}else{
 			//song not found
-			String hostName = null;
-			try {
-				hostName = InetAddress.getLocalHost().toString();
-			} catch (UnknownHostException e) {
-				logger.warn("Cannot determine hostname", e);
-			}
-			String response = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
-			+"<html><head>"
-			+"<title>404 Not Found</title>"
-			+"</head><body>"
-			+"<h1>Not Found</h1>"
-			+"<p>The requested URL "+path+" was not found on this server.</p>"
-			+"<hr>"
-			+"<address>MusicHub Server at "+hostName+" Port "+port+"</address>"
-			+"</body></html>";
-			return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_HTML, response);
+			return getNotFoundResponse(originalPath);
 		}
 	}
 	
@@ -118,12 +142,24 @@ public class WebServer extends NanoHTTPD {
 		return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Internal error: song file not found");
 	}
 	
+	Response serveFileSimple(Map<String, String> header, File file, String mime) {
+		Response res;
+		try {
+			InputStream stream = new FileInputStream(file);
+			res = newFixedLengthResponse(Response.Status.OK, mime, stream, file.length());
+		} catch (FileNotFoundException e) {
+			return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+					"Internal error: file not found");
+		}
+		return res;
+	}
+	
     /**
      * Serves file from homeDir and its' subdirectories (only). Uses only URI,
      * ignores all headers and HTTP parameters.
      */
     Response serveFile(Map<String, String> header, File file, String mime) {
-        Response res;
+		Response res;
         try {
             // Calculate etag
             String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
@@ -228,6 +264,19 @@ public class WebServer extends NanoHTTPD {
         return res;
     }
     
+    protected Response getNotFoundResponse(String path){
+		String response = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
+		+"<html><head>"
+		+"<title>404 Not Found</title>"
+		+"</head><body>"
+		+"<h1>Not Found</h1>"
+		+"<p>The requested URL "+path+" was not found on this server.</p>"
+		+"<hr>"
+		+"<address>MusicHub Server at "+hostname+" Port "+port+"</address>"
+		+"</body></html>";
+		return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_HTML, response);
+    }
+    
     protected Response getForbiddenResponse(String s) {
         return newFixedLengthResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
     }
@@ -249,12 +298,15 @@ public class WebServer extends NanoHTTPD {
 		return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Internal error: song album art not found");
 	}
 	
-	private String getSongUrl(String context, Song song){
+	private String getSongUrl(String context, String suffix, Song song){
 		try {
-			String host = InetAddress.getLocalHost().getHostAddress();
 			String path = context+"/"+song.getFolder().getRelativePath()+song.getFilename();
-			return new URL("http", host, port, path).toExternalForm();
-		} catch (UnknownHostException | MalformedURLException e) {
+			if (suffix != null)
+				path += suffix;
+			URI uri = new URI("http", null, hostname, port, path, null, null);
+			String songUrl = uri.toASCIIString();
+			return songUrl;
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
@@ -262,11 +314,14 @@ public class WebServer extends NanoHTTPD {
 	}
 	
 	public String getSongFileUrl(Song song){
-		return getSongUrl(CONTEXT_MUSIC, song);
+		return getSongUrl(CONTEXT_MUSIC, null, song);
 	}
 	
 	public String getSongAlbumArtUrl(Song song){
-		return getSongUrl(CONTEXT_ALBUM_ART, song);
+		if (song.getAlbumImage() == null)
+			return "";
+		
+		return getSongUrl(CONTEXT_ALBUM_ART, "/"+getAlbumArtFileName(), song);
 	}
 
 }

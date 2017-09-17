@@ -44,17 +44,18 @@ public class UpnpFactory {
         		song.getId(), // Item ID,
         		song.getFolder().getId(), // parent Container ID
                 title, creator, album, artist,
-                new Res(mimeType, song.getSize(), song.getLengthHhMmSs(), song.getBitrate().longValue(), URI)
+                new Res(mimeType.toString(), song.getSize(), song.getLengthHhMmSs(), song.getBitrate().longValue(), URI)
         );
 
-		
 		return mt;
 	}
 	
 	public static TrackMetadata songToTrackMetadata(WebServer httpServer, MusicTrack mt, Song song){
 		String URI = httpServer.getSongFileUrl(song);
 		String artURI = httpServer.getSongAlbumArtUrl(song);
-		return new TrackMetadata(song.getId(), song.getTitle(), song.getArtist(), song.getGenre(), artURI, URI, MusicTrack.CLASS.getValue());
+		MimeType mimeType = new MimeType("audio", "mpeg");
+		Res res = new Res(mimeType.toString(), song.getSize(), song.getLengthHhMmSs(), song.getBitrate().longValue(), URI);
+		return new TrackMetadata(song.getId(), song.getFolder().getId(), song.getTitle(), song.getArtist(), song.getGenre(), artURI, res, MusicTrack.CLASS.getValue());
 	}
 
 }

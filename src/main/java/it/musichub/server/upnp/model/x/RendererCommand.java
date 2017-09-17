@@ -85,7 +85,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	@Override
 	public void pause()
 	{
-		/*verbose*/logger.debug("Interrupt");
+		logger.trace("Interrupt");
 		pause = true;
 		thread.interrupt();
 	}
@@ -93,7 +93,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	@Override
 	public void resume()
 	{
-		/*verbose*/logger.debug("Resume");
+		logger.trace("Resume");
 		pause = false;
 		if (!thread.isAlive())
 			thread.start();
@@ -117,6 +117,9 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 		Device device = ds.getSelectedDevice();
 		RemoteDevice clingDevice = DeviceFactory.toClingDevice(device, ds.getUpnpService());
+		if (clingDevice == null)
+			return null;
+		
 		return clingDevice.findService(new UDAServiceType("RenderingControl"));
 	}
 
@@ -132,6 +135,9 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 		Device device = ds.getSelectedDevice();
 		RemoteDevice clingDevice = DeviceFactory.toClingDevice(device, ds.getUpnpService());
+		if (clingDevice == null)
+			return null;
+		
 		return clingDevice.findService(new UDAServiceType("AVTransport"));
 	}
 
@@ -145,7 +151,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success playing ! ");
+				logger.trace("Success playing ! ");
 				// TODO update player state
 			}
 
@@ -167,7 +173,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success stopping ! ");
+				logger.trace("Success stopping ! ");
 				// TODO update player state
 			}
 
@@ -189,7 +195,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success pausing ! ");
+				logger.trace("Success pausing ! ");
 				// TODO update player state
 			}
 
@@ -227,7 +233,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success seeking !");
+				logger.trace("Success seeking !");
 				// TODO update player state
 			}
 
@@ -250,7 +256,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			public void success(ActionInvocation invocation)
 			{
 				super.success(invocation);
-				/*verbose*/logger.debug("Success to set volume");
+				logger.trace("Success to set volume");
 				rendererState.setVolume(volume);
 			}
 
@@ -272,7 +278,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success setting mute status ! ");
+				logger.trace("Success setting mute status ! ");
 				rendererState.setMute(mute);
 			}
 
@@ -337,8 +343,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			type = "textItem";
 
 		// TODO genre && artURI
-		final TrackMetadata trackMetadata = new TrackMetadata(upnpItem.getId(), upnpItem.getTitle(),
-				upnpItem.getCreator(), "", "", upnpItem.getFirstResource().getValue(),
+		final TrackMetadata trackMetadata = new TrackMetadata(upnpItem.getId(), upnpItem.getParentID(), upnpItem.getTitle(),
+				upnpItem.getCreator(), "", "", upnpItem.getFirstResource(),
 				"object.item." + type);
 
 		logger.info("TrackMetadata : "+trackMetadata.toString());
@@ -348,7 +354,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success stopping ! ");
+				logger.trace("Success stopping ! ");
 				callback();
 			}
 
@@ -380,7 +386,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				/*verbose*/logger.debug("Success stopping ! ");
+				logger.trace("Success stopping ! ");
 				callback();
 			}
 
@@ -393,7 +399,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 			public void callback()
 			{
-				setURI(trackMetadata.res, trackMetadata);
+				setURI(trackMetadata.res.getValue(), trackMetadata);
 			}
 		});
 
