@@ -68,6 +68,11 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	}
 	
 	@Override
+	public IRendererState getRendererState(){ //TODO provvisorio
+		return rendererState;
+	}
+	
+	@Override
 	public IRendererCommand getRendererCommand(){ //TODO provvisorio
 		return rendererCommand;
 	}
@@ -180,8 +185,8 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
         try {
 			TimeUnit.SECONDS.sleep(4);
 		} catch (Exception e) {}
-        MusicTrack mt = UpnpFactory.songToMusicTrack(httpServer, song0);
-        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(httpServer, mt, song0);
+//        MusicTrack mt = UpnpFactory.songToMusicTrack(httpServer, song0);
+        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(httpServer, song0);
         logger.fatal("Track metadata xml: "+trackMetadata.getXML());
         
 //        Res res = new Res(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"), 5835548L, "0:04:01.000", 24000L, "http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3");
@@ -189,11 +194,10 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 //        logger.fatal("FAKE Track metadata xml: "+trackMetadataFAKE.getXML());
 //        
 //        - MediaInfo/TransportInfo mettere toString come PositionInfo (fare un toString da fuori)
-//        - album art non ha l'estensione giusta
 //        - gestione servizi con gli stati.. gestire casi di interruzione stato (es. porta http già occupata; cartella N:\ non accessibile)
-        logger.fatal("Protocol info precedente: "+trackMetadata.res.getProtocolInfo().toString());
-        trackMetadata.res.setProtocolInfo(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"));
-        logger.fatal("Protocol info tarocco: "+trackMetadata.res.getProtocolInfo().toString());
+        logger.fatal("Protocol info: "+trackMetadata.res.getProtocolInfo().toString());
+//        trackMetadata.res.setProtocolInfo(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"));
+//        logger.fatal("Protocol info tarocco: "+trackMetadata.res.getProtocolInfo().toString());
         
         rendererCommand.launchItem2(trackMetadata);
 //        try {

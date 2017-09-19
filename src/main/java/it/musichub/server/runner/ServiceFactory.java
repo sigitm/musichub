@@ -180,6 +180,12 @@ public class ServiceFactory {
 				getDiscoveryService().getRendererCommand().commandPlay();
 			}else if ("mute".equalsIgnoreCase(command)) {
 				getDiscoveryService().getRendererCommand().toggleMute();
+			}else if ("vol+".equalsIgnoreCase(command)) {
+				int vol = getDiscoveryService().getRendererState().getVolume();
+				getDiscoveryService().getRendererCommand().setVolume(vol+5);
+			}else if ("vol-".equalsIgnoreCase(command)) {
+				int vol = getDiscoveryService().getRendererState().getVolume();
+				getDiscoveryService().getRendererCommand().setVolume(vol-5);
 			}else if ("stop".equalsIgnoreCase(command)) {
 				getDiscoveryService().getRendererCommand().commandStop();
 			}else if ("exit".equalsIgnoreCase(command)) {

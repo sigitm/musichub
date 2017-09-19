@@ -10,6 +10,7 @@ import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceService;
 import it.musichub.server.upnp.model.x.IRendererCommand;
+import it.musichub.server.upnp.model.x.IRendererState;
 
 public interface DiscoveryService extends IMusicHubService {
 
@@ -20,6 +21,7 @@ public interface DiscoveryService extends IMusicHubService {
 	 * (POTREI FARE UN'INTERFACCIA INTERNAL PER L'USO INTERNO....SOLO DA ALTRI SERVIZI)
 	 */
 	public UpnpService getUpnpService();
+	public IRendererState getRendererState(); //TODO provvisorio
 	public IRendererCommand getRendererCommand(); //TODO provvisorio
 	
 	public List<Device> getDevices();

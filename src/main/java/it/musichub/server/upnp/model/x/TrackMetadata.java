@@ -9,6 +9,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.log4j.Logger;
 import org.fourthline.cling.support.model.Res;
+import org.fourthline.cling.support.model.dlna.DLNAProfiles;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -144,7 +145,7 @@ public class TrackMetadata {
 			if(artURI!=null)
 			{
 				s.startTag(null, "upnp:albumArtURI");
-				s.attribute(null, "dlna:profileID", "JPEG_TN"); //TODO: should use different album arts based on size: e.g. https://yabb.jriver.com/interact/index.php?topic=73954.0
+				s.attribute(null, "dlna:profileID", DLNAProfiles.JPEG_TN.getCode()); //TODO: should use different album arts based on size: e.g. https://yabb.jriver.com/interact/index.php?topic=73954.0
 				s.text(artURI);
 				s.endTag(null, "upnp:albumArtURI");
 			}
