@@ -174,6 +174,14 @@ public class ServiceFactory {
 		Scanner sc = new Scanner(System.in);
 		while (true) {
 			String command = sc.nextLine();
+			/*
+			 * potrei cambiare il logging level
+			 * 
+			 * 
+			 * list devices
+			 * list devices online
+			 * get selected device
+			 */
 			if ("pause".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().commandPause();
 			}else if ("play".equalsIgnoreCase(command)) {
