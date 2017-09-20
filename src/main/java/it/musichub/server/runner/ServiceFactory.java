@@ -25,7 +25,7 @@ import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
-import it.musichub.server.upnp.DiscoveryService;
+import it.musichub.server.upnp.UpnpControllerService;
 
 public class ServiceFactory {
 
@@ -175,19 +175,19 @@ public class ServiceFactory {
 		while (true) {
 			String command = sc.nextLine();
 			if ("pause".equalsIgnoreCase(command)) {
-				getDiscoveryService().getRendererCommand().commandPause();
+				getUpnpControllerService().getRendererCommand().commandPause();
 			}else if ("play".equalsIgnoreCase(command)) {
-				getDiscoveryService().getRendererCommand().commandPlay();
+				getUpnpControllerService().getRendererCommand().commandPlay();
 			}else if ("mute".equalsIgnoreCase(command)) {
-				getDiscoveryService().getRendererCommand().toggleMute();
+				getUpnpControllerService().getRendererCommand().toggleMute();
 			}else if ("vol+".equalsIgnoreCase(command)) {
-				int vol = getDiscoveryService().getRendererState().getVolume();
-				getDiscoveryService().getRendererCommand().setVolume(vol+5);
+				int vol = getUpnpControllerService().getRendererState().getVolume();
+				getUpnpControllerService().getRendererCommand().setVolume(vol+5);
 			}else if ("vol-".equalsIgnoreCase(command)) {
-				int vol = getDiscoveryService().getRendererState().getVolume();
-				getDiscoveryService().getRendererCommand().setVolume(vol-5);
+				int vol = getUpnpControllerService().getRendererState().getVolume();
+				getUpnpControllerService().getRendererCommand().setVolume(vol-5);
 			}else if ("stop".equalsIgnoreCase(command)) {
-				getDiscoveryService().getRendererCommand().commandStop();
+				getUpnpControllerService().getRendererCommand().commandStop();
 			}else if ("exit".equalsIgnoreCase(command)) {
 				logger.info("Terminating program by exit request... ");
 				sc.close();
@@ -197,8 +197,8 @@ public class ServiceFactory {
 		}
 	}
 	
-	private DiscoveryService getDiscoveryService(){
-		return (DiscoveryService) ServiceFactory.getServiceInstance(Service.upnpdiscovery);
+	private UpnpControllerService getUpnpControllerService(){
+		return (UpnpControllerService) ServiceFactory.getServiceInstance(Service.upnpcontroller);
 	}
 	
 	private static interface ShutdownHook{

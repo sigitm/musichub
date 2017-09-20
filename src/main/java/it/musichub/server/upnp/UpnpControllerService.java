@@ -12,7 +12,7 @@ import it.musichub.server.upnp.model.DeviceService;
 import it.musichub.server.upnp.model.x.IRendererCommand;
 import it.musichub.server.upnp.model.x.IRendererState;
 
-public interface DiscoveryService extends IMusicHubService {
+public interface UpnpControllerService extends IMusicHubService {
 
 	/*
 	 * nuova proposta

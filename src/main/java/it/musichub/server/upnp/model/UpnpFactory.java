@@ -17,7 +17,7 @@ import org.fourthline.cling.support.model.item.MusicTrack;
 import org.seamless.util.MimeType;
 
 import it.musichub.server.library.model.Song;
-import it.musichub.server.upnp.WebServer;
+import it.musichub.server.upnp.MediaServer;
 import it.musichub.server.upnp.model.x.IRendererCommand;
 import it.musichub.server.upnp.model.x.IRendererState;
 import it.musichub.server.upnp.model.x.RendererCommand;
@@ -41,7 +41,7 @@ public class UpnpFactory {
 	}
 
 	@Deprecated
-	public static MusicTrack songToMusicTrack(WebServer httpServer, Song song) {
+	public static MusicTrack songToMusicTrack(MediaServer httpServer, Song song) {
 		String album = song.getAlbum();
 		String creator = song.getArtist(); // Required
 		PersonWithRole artist = new PersonWithRole(creator, "Performer");
@@ -69,7 +69,7 @@ public class UpnpFactory {
 		return mt;
 	}
 
-	public static TrackMetadata songToTrackMetadata(WebServer httpServer, Song song){
+	public static TrackMetadata songToTrackMetadata(MediaServer httpServer, Song song){
 		String URI = httpServer.getSongFileUrl(song);
 		String artURI = httpServer.getSongAlbumArtUrl(song);
 		

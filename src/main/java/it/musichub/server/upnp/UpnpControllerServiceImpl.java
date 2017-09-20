@@ -42,7 +42,7 @@ import it.musichub.server.upnp.model.x.IRendererCommand;
 import it.musichub.server.upnp.model.x.IRendererState;
 import it.musichub.server.upnp.model.x.TrackMetadata;
 
-public class DiscoveryServiceImpl extends MusicHubServiceImpl implements DiscoveryService {
+public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements UpnpControllerService {
 
 	/**
 	 * Tengo i device in un mio deviceregistry e li aggiorno con il listener
@@ -58,9 +58,9 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 	private UpnpService upnpService = null;
 	private IRendererState rendererState = null;
 	private IRendererCommand rendererCommand = null;
-	private WebServer httpServer = null;
+	private MediaServer httpServer = null;
 	
-	private final static Logger logger = Logger.getLogger(DiscoveryServiceImpl.class);
+	private final static Logger logger = Logger.getLogger(UpnpControllerServiceImpl.class);
 
 	@Override
 	public UpnpService getUpnpService() {
@@ -133,7 +133,7 @@ public class DiscoveryServiceImpl extends MusicHubServiceImpl implements Discove
 		rendererCommand = UpnpFactory.createRendererCommand(upnpService.getControlPoint(), rendererState);
 		
 		//creating http server
-		httpServer = new WebServer(getConfiguration().getMediaHttpPort());
+		httpServer = new MediaServer(getConfiguration().getMediaHttpPort());
 	}
 
 	@Override

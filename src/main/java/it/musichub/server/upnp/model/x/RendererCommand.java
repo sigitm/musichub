@@ -50,7 +50,7 @@ import org.fourthline.cling.support.renderingcontrol.callback.SetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.SetVolume;
 
 import it.musichub.server.runner.ServiceFactory;
-import it.musichub.server.upnp.DiscoveryService;
+import it.musichub.server.upnp.UpnpControllerService;
 import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
@@ -101,12 +101,12 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			thread.interrupt();
 	}
 
-	private static DiscoveryService getDiscoveryService(){
-		return (DiscoveryService) ServiceFactory.getServiceInstance(it.musichub.server.runner.ServiceRegistry.Service.upnpdiscovery);
+	private static UpnpControllerService getUpnpControllerService(){
+		return (UpnpControllerService) ServiceFactory.getServiceInstance(it.musichub.server.runner.ServiceRegistry.Service.upnpcontroller);
 	}
 	
 	public static Service getRenderingControlService() {
-		DiscoveryService ds = getDiscoveryService();
+		UpnpControllerService ds = getUpnpControllerService();
 		try {
 			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
 				return null;
@@ -124,7 +124,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 
 	public static Service getAVTransportService() {
-		DiscoveryService ds = getDiscoveryService();
+		UpnpControllerService ds = getUpnpControllerService();
 		try {
 			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
 				return null;

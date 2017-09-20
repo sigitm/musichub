@@ -27,20 +27,20 @@ import it.musichub.server.library.utils.FileUtils;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
 
-public class WebServer extends NanoHTTPD {
+public class MediaServer extends NanoHTTPD {
 
-	private final static Logger logger = Logger.getLogger(HttpServerServiceImpl.class);
+	private final static Logger logger = Logger.getLogger(MediaServer.class);
 	
 	private String hostname = null;
 	private int port = -1;
 	
-	public WebServer(int port) {
+	public MediaServer(int port) {
 		super(port);
 		this.hostname = getHostAddress();
 		this.port = port;
 	}
 
-	public WebServer(String hostname, int port) {
+	public MediaServer(String hostname, int port) {
 		super(hostname, port);
 		this.hostname = hostname;
 		this.port = port;

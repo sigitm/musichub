@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import it.musichub.server.upnp.DiscoveryServiceImpl;
+import it.musichub.server.upnp.UpnpControllerServiceImpl;
 
 public class DeviceRegistry extends HashMap<String, Device> {
 

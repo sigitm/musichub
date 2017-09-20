@@ -270,12 +270,21 @@ public class PlaylistState implements IPlaylistState {
 	}
 
 	@Override
-	public void setShuffle(boolean shuffle) {
+	public synchronized void setShuffle(boolean shuffle) {
 		this.shuffle = shuffle;
+		
+		if (shuffle){
+			shuffle();
+		}else{
+			Integer songPointer = songPointers.get(currentPointer);
+			for (int i=0;i<songPointers.size();i++)
+				songPointers.set(i, i);
+			currentPointer = songPointers.indexOf(songPointer);
+		}
 	}
 	
 	@Override
-	public void shuffle() {
+	public synchronized void shuffle() {
 		Integer songPointer = songPointers.get(currentPointer);
 		Collections.shuffle(songPointers);
 		currentPointer = songPointers.indexOf(songPointer);
