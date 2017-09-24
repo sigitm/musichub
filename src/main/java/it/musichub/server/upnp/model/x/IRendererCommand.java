@@ -19,6 +19,8 @@
 
 package it.musichub.server.upnp.model.x;
 
+import it.musichub.server.upnp.model.IPlaylistState;
+
 public interface IRendererCommand {
 
 	// Pause/resume backgroud state update
@@ -54,6 +56,7 @@ public interface IRendererCommand {
 	// / URI
 	public void launchItem(final IDIDLItem uri);
 	public void launchItem2(final TrackMetadata trackMetadata);
+	public void launchPlaylist(final IPlaylistState playlistState);
 
 	// / Full
 	public void updateFull();

@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.seamless.util.MimeType;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response;
 import it.musichub.server.config.Configuration;
 import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
@@ -122,22 +123,11 @@ public class MediaServer extends NanoHTTPD {
 	
 	private Response serveSong(Map<String, String> headers, Song song) {
 		if (song.getFile().exists()){
-			try {
-				File file = song.getFile();
-//				byte[] bytearray = new byte[(int) file.length()];
-//				FileInputStream fis = new FileInputStream(file);
-//				
-//				BufferedInputStream bis = new BufferedInputStream(fis);
-//				bis.read(bytearray, 0, bytearray.length);
-				
-				String mimeType = new MimeType("audio", "mpeg").toString();
-				
-//				return newFixedLengthResponse(Response.Status.OK, mimeType, bis, bytearray.length);
-				return serveFile(headers, file, mimeType);
-			} catch (Exception e) {//TODO XXX catch inutile!!!!!!!!
-				logger.error("serveSong: IOException", e);
-				return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Internal error: IOException while loading song");
-			}
+			File file = song.getFile();
+			
+			String mimeType = new MimeType("audio", "mpeg").toString();
+			
+			return serveFile(headers, file, mimeType);
 		}
 		return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "Internal error: song file not found");
 	}
@@ -155,8 +145,7 @@ public class MediaServer extends NanoHTTPD {
 	}
 	
     /**
-     * Serves file from homeDir and its' subdirectories (only). Uses only URI,
-     * ignores all headers and HTTP parameters.
+     * Serves file. Inspired by fi.iki.elonen.SimpleWebServer.
      */
     Response serveFile(Map<String, String> header, File file, String mime) {
 		Response res;
@@ -265,16 +254,17 @@ public class MediaServer extends NanoHTTPD {
     }
     
     protected Response getNotFoundResponse(String path){
-		String response = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
-		+"<html><head>"
-		+"<title>404 Not Found</title>"
-		+"</head><body>"
-		+"<h1>Not Found</h1>"
-		+"<p>The requested URL "+path+" was not found on this server.</p>"
-		+"<hr>"
-		+"<address>MusicHub Server at "+hostname+" Port "+port+"</address>"
-		+"</body></html>";
-		return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_HTML, response);
+//		String response = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
+//		+"<html><head>"
+//		+"<title>404 Not Found</title>"
+//		+"</head><body>"
+//		+"<h1>Not Found</h1>"
+//		+"<p>The requested URL "+path+" was not found on this server.</p>"
+//		+"<hr>"
+//		+"<address>MusicHub Server at "+hostname+" Port "+port+"</address>"
+//		+"</body></html>";
+//		return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_HTML, response);
+		return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404: path "+path+" not found.");
     }
     
     protected Response getForbiddenResponse(String s) {
@@ -307,8 +297,7 @@ public class MediaServer extends NanoHTTPD {
 			String songUrl = uri.toASCIIString();
 			return songUrl;
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Error composing url for song "+song+", context="+context+", suffix="+suffix, e);
 			return null;
 		}
 	}
@@ -319,7 +308,7 @@ public class MediaServer extends NanoHTTPD {
 	
 	public String getSongAlbumArtUrl(Song song){
 		if (song.getAlbumImage() == null)
-			return "";
+			return null;
 		
 		return getSongUrl(CONTEXT_ALBUM_ART, "/"+getAlbumArtFileName(), song);
 	}

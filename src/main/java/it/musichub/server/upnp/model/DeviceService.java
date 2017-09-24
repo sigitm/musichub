@@ -39,4 +39,9 @@ public class DeviceService implements Serializable {
 		this.serviceType = serviceType;
 	}
 	
+	@Override
+	public String toString() {
+		return "DeviceService [namespace=" + namespace + ", serviceId=" + serviceId + ", serviceType=" + serviceType
+				+ "]";
+	}
 }

@@ -45,5 +45,11 @@ public class DeviceIcon implements Serializable {
 	public byte[] getData() {
 		return data;
 	}
+
+	@Override
+	public String toString() {
+		return "DeviceIcon [mimeType=" + mimeType + ", width=" + width + ", height=" + height + ", depth=" + depth
+				+ "]";
+	}
 	
 }

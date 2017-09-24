@@ -105,4 +105,11 @@ public class Device implements Serializable {
 		setOnline(false);
 		setLastUpdate(new Date());
 	}
+	
+	@Override
+	public String toString() {
+		return "Device [udn=" + udn + ", deviceType=" + deviceType + ", customName=" + customName + ", friendlyName="
+				+ friendlyName + ", manifacturer=" + manifacturer + ", modelName=" + modelName + ", online=" + online
+				+ ", lastSeenOnline=" + lastSeenOnline + ", lastUpdate=" + lastUpdate + "]";
+	}
 }

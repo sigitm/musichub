@@ -22,10 +22,7 @@ package it.musichub.server.upnp.model.x;
 public interface IRendererState {
 
 	// Play state
-	public enum State
-	{
-		PLAY, PAUSE, STOP
-	}
+	public enum State {PLAY, PAUSE, STOP}
 
 	public void reset();
 	

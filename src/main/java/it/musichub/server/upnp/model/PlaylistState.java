@@ -6,19 +6,30 @@ import java.util.List;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
+import it.musichub.server.upnp.model.x.IRendererState.State;
 
 public class PlaylistState implements IPlaylistState {
 
+	private PlaylistState state;
 	private Playlist songs;
 	private List<Integer> songPointers;
 	private Integer currentPointer;
 	private boolean shuffle;
 	private RepeatMode repeat; 
 	
-	
 	public PlaylistState() {
 		super();
 		init();
+	}
+	
+	@Override
+	public PlaylistState getState(){
+		return state;
+	}
+
+	@Override
+	public void setState(PlaylistState state){
+		this.state = state;
 	}
 	
 	private synchronized void init(){
@@ -111,6 +122,7 @@ public class PlaylistState implements IPlaylistState {
 	
 	@Override
 	public synchronized void clear(){
+		state = PlaylistState.STOP;
 		songs = new Playlist();
 		songPointers = new ArrayList<Integer>();
 		currentPointer = null;
@@ -299,5 +311,13 @@ public class PlaylistState implements IPlaylistState {
 	public void setRepeat(RepeatMode repeat) {
 		this.repeat = repeat;
 	}
+
+	@Override
+	public String toString() {
+		return "PlaylistState [playlist=" + songs + ", currentSong=" + getCurrentSong() + ", shuffle=" + shuffle
+				+ ", repeat=" + repeat + "]";
+	}
+	
+	
 	
 }

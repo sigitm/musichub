@@ -54,6 +54,8 @@ import it.musichub.server.upnp.UpnpControllerService;
 import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
+import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.x.IRendererState.State;
 
 @SuppressWarnings("rawtypes")
 public class RendererCommand implements Runnable, IRendererCommand {
@@ -63,6 +65,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 	private final RendererState rendererState;
 	private final ControlPoint controlPoint;
+//	private final IPlaylistState playlist;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 	public Thread thread;
 	boolean pause = false;
@@ -404,6 +407,27 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		});
 
 	}
+	
+	@Override
+	public void launchPlaylist(final IPlaylistState playlistState){
+		
+	}
+	
+//	private void handlePlaylist(){
+//		if (playlist != null){
+//			if (rendererState.getState() == State.STOP && playlist.hasNext() && playlist.getState 
+//		}
+//		
+//		
+//		
+//		if  
+//		- if state==stop && playlistState==play //la canzone precedente è finita
+//		  - playNext()
+//		- x
+//	}
+		
+	
+	
 
 	// Update
 
@@ -466,6 +490,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			{
 				logger.debug("Receive position info ! " + arg1);
 				rendererState.setTransportInfo(arg1);
+//				handlePlaylist();XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 			}
 		});
 	}
