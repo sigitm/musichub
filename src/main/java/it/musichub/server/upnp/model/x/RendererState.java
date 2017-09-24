@@ -36,7 +36,7 @@ public class RendererState implements IRendererState {
 	private State state;
 	private int volume;
 	private boolean mute;
-	private IPlaylistState playlistState;
+	private IPlaylistState playlist;
 
 	// / Track info
 	private PositionInfo positionInfo;
@@ -56,7 +56,7 @@ public class RendererState implements IRendererState {
 	public void reset(){
 		state = State.STOP;
 		volume = -1;
-		playlistState = new PlaylistState();
+		playlist = new PlaylistState();
 		resetTrackInfo();
 	}
 	
@@ -116,12 +116,12 @@ public class RendererState implements IRendererState {
 //		notifyAllObservers();
 	}
 	
-	public IPlaylistState getPlaylistState() {
-		return playlistState;
+	public IPlaylistState getPlaylist() {
+		return playlist;
 	}
 
-	public void setPlaylistState(IPlaylistState playlistState) {
-		this.playlistState = playlistState;
+	public void setPlaylist(IPlaylistState playlist) {
+		this.playlist = playlist;
 	}
 
 	public void setPositionInfo(PositionInfo positionInfo)

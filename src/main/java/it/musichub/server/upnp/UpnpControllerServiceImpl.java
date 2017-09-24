@@ -352,6 +352,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	@Override
 	public void setSelectedDevice(Device device){
 		deviceRegistry.setSelectedDevice(device);
+		rendererState.reset();
 		rendererCommand.resume();
 	}
 	
@@ -366,6 +367,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	@Override
 	public void clearSelectedDevice(){
 		deviceRegistry.clearSelectedDevice();
+		rendererState.reset();
 		rendererCommand.pause();
 	}
 

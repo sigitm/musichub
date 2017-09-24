@@ -10,7 +10,7 @@ import it.musichub.server.upnp.model.x.IRendererState.State;
 
 public class PlaylistState implements IPlaylistState {
 
-	private PlaylistState state;
+	private State state;
 	private Playlist songs;
 	private List<Integer> songPointers;
 	private Integer currentPointer;
@@ -23,12 +23,12 @@ public class PlaylistState implements IPlaylistState {
 	}
 	
 	@Override
-	public PlaylistState getState(){
+	public State getState(){
 		return state;
 	}
 
 	@Override
-	public void setState(PlaylistState state){
+	public void setState(State state){
 		this.state = state;
 	}
 	
@@ -122,7 +122,7 @@ public class PlaylistState implements IPlaylistState {
 	
 	@Override
 	public synchronized void clear(){
-		state = PlaylistState.STOP;
+		state = State.STOP;
 		songs = new Playlist();
 		songPointers = new ArrayList<Integer>();
 		currentPointer = null;

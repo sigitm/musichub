@@ -65,7 +65,6 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 	private final RendererState rendererState;
 	private final ControlPoint controlPoint;
-//	private final IPlaylistState playlist;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 	public Thread thread;
 	boolean pause = false;
@@ -413,18 +412,15 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		
 	}
 	
-//	private void handlePlaylist(){
-//		if (playlist != null){
-//			if (rendererState.getState() == State.STOP && playlist.hasNext() && playlist.getState 
-//		}
-//		
-//		
-//		
-//		if  
-//		- if state==stop && playlistState==play //la canzone precedente è finita
-//		  - playNext()
-//		- x
-//	}
+	private void handlePlaylist(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		if (playlist != null){
+			if (rendererState.getState() == State.STOP && playlist.hasNext() && playlist.getState() == IPlaylistState.State.PLAY){
+				//the previous song is over
+				//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX launch next song....
+			}
+		}
+	}
 		
 	
 	
@@ -482,15 +478,15 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
-				logger.warn("Fail to get position info ! " + arg2);
+				logger.warn("Fail to get transport info ! " + arg2);
 			}
 
 			@Override
 			public void received(ActionInvocation arg0, TransportInfo arg1)
 			{
-				logger.debug("Receive position info ! " + arg1);
+				logger.debug("Receive transport info ! " + arg1);
 				rendererState.setTransportInfo(arg1);
-//				handlePlaylist();XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+				handlePlaylist();
 			}
 		});
 	}
