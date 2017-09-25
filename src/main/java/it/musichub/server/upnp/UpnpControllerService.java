@@ -23,6 +23,7 @@ public interface UpnpControllerService extends IMusicHubService {
 	public UpnpService getUpnpService();
 	public IRendererState getRendererState(); //TODO provvisorio
 	public IRendererCommand getRendererCommand(); //TODO provvisorio
+	public MediaServer getMediaServer(); //TODO provvisorio???
 	
 	public List<Device> getDevices();
 	public Device getDevice(String udn) throws DeviceNotFoundException;

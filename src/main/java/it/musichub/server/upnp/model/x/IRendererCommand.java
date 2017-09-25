@@ -19,7 +19,14 @@
 
 package it.musichub.server.upnp.model.x;
 
+import org.fourthline.cling.model.action.ActionInvocation;
+import org.fourthline.cling.model.message.UpnpResponse;
+import org.fourthline.cling.support.avtransport.callback.Stop;
+
+import it.musichub.server.library.model.Song;
+import it.musichub.server.upnp.MediaServer;
 import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.UpnpFactory;
 
 public interface IRendererCommand {
 
@@ -54,11 +61,11 @@ public interface IRendererCommand {
 	public void updateVolume();
 
 	// / URI
-	public void launchItem(final IDIDLItem uri);
-	public void launchItem2(final TrackMetadata trackMetadata);
-	public void launchPlaylist(final IPlaylistState playlistState);
+//	public void launchItem(final IDIDLItem uri);
+//	public void launchTrackMetadata(final TrackMetadata trackMetadata);
+	public void launchPlaylist();
 
-	// / Full
+	// / Update
 	public void updateFull();
 
 }

@@ -34,9 +34,30 @@ public class PlaylistState implements IPlaylistState {
 	
 	private synchronized void init(){
 		clear();
+		clearSettings();
+	}
+	
+	@Override
+	public synchronized void clear(){
+		clearState();
+		clearContent();
+	}
+	
+	private synchronized void clearState(){
+		state = State.STOP;
+		currentPointer = null;
+	}
+	
+	private synchronized void clearContent(){
+		songs = new Playlist();
+		songPointers = new ArrayList<Integer>();
+	}
+	
+	private synchronized void clearSettings(){
 		shuffle = false;
 		repeat = RepeatMode.OFF;
 	}
+	
 	
 	@Override
 	public synchronized Song getCurrentSong(){
@@ -118,14 +139,6 @@ public class PlaylistState implements IPlaylistState {
 			if (!songs.contains(song))
 				removeSong(song);
 		}
-	}
-	
-	@Override
-	public synchronized void clear(){
-		state = State.STOP;
-		songs = new Playlist();
-		songPointers = new ArrayList<Integer>();
-		currentPointer = null;
 	}
 	
 	@Override

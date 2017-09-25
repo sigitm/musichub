@@ -49,12 +49,15 @@ import org.fourthline.cling.support.renderingcontrol.callback.GetVolume;
 import org.fourthline.cling.support.renderingcontrol.callback.SetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.SetVolume;
 
+import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.ServiceFactory;
+import it.musichub.server.upnp.MediaServer;
 import it.musichub.server.upnp.UpnpControllerService;
 import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.UpnpFactory;
 import it.musichub.server.upnp.model.x.IRendererState.State;
 
 @SuppressWarnings("rawtypes")
@@ -320,63 +323,63 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		});
 	}
 
-	@Override
-	public void launchItem(final IDIDLItem item)
-	{
-		if (getAVTransportService() == null)
-			return;
-
-		DIDLObject obj = ((ClingDIDLItem) item).getObject();
-		if (!(obj instanceof Item))
-			return;
-
-		Item upnpItem = (Item) obj;
-
-		String type = "";
-		if (upnpItem instanceof AudioItem)
-			type = "audioItem";
-		else if (upnpItem instanceof VideoItem)
-			type = "videoItem";
-		else if (upnpItem instanceof ImageItem)
-			type = "imageItem";
-		else if (upnpItem instanceof PlaylistItem)
-			type = "playlistItem";
-		else if (upnpItem instanceof TextItem)
-			type = "textItem";
-
-		// TODO genre && artURI
-		final TrackMetadata trackMetadata = new TrackMetadata(upnpItem.getId(), upnpItem.getParentID(), upnpItem.getTitle(),
-				upnpItem.getCreator(), "", "", upnpItem.getFirstResource(),
-				"object.item." + type);
-
-		logger.info("TrackMetadata : "+trackMetadata.toString());
-
-		// Stop playback before setting URI
-		controlPoint.execute(new Stop(getAVTransportService()) {
-			@Override
-			public void success(ActionInvocation invocation)
-			{
-				logger.trace("Success stopping ! ");
-				callback();
-			}
-
-			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
-				logger.warn("Fail to stop ! " + arg2);
-				callback();
-			}
-
-			public void callback()
-			{
-				setURI(item.getURI(), trackMetadata);
-			}
-		});
-
-	}
+//	@Override
+//	public void launchItem(final IDIDLItem item)
+//	{
+//		if (getAVTransportService() == null)
+//			return;
+//
+//		DIDLObject obj = ((ClingDIDLItem) item).getObject();
+//		if (!(obj instanceof Item))
+//			return;
+//
+//		Item upnpItem = (Item) obj;
+//
+//		String type = "";
+//		if (upnpItem instanceof AudioItem)
+//			type = "audioItem";
+//		else if (upnpItem instanceof VideoItem)
+//			type = "videoItem";
+//		else if (upnpItem instanceof ImageItem)
+//			type = "imageItem";
+//		else if (upnpItem instanceof PlaylistItem)
+//			type = "playlistItem";
+//		else if (upnpItem instanceof TextItem)
+//			type = "textItem";
+//
+//		// TODO genre && artURI
+//		final TrackMetadata trackMetadata = new TrackMetadata(upnpItem.getId(), upnpItem.getParentID(), upnpItem.getTitle(),
+//				upnpItem.getCreator(), "", "", upnpItem.getFirstResource(),
+//				"object.item." + type);
+//
+//		logger.info("TrackMetadata : "+trackMetadata.toString());
+//
+//		// Stop playback before setting URI
+//		controlPoint.execute(new Stop(getAVTransportService()) {
+//			@Override
+//			public void success(ActionInvocation invocation)
+//			{
+//				logger.trace("Success stopping ! ");
+//				callback();
+//			}
+//
+//			@Override
+//			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
+//			{
+//				logger.warn("Fail to stop ! " + arg2);
+//				callback();
+//			}
+//
+//			public void callback()
+//			{
+//				setURI(item.getURI(), trackMetadata);
+//			}
+//		});
+//
+//	}
 	
-	@Override
-	public void launchItem2(final TrackMetadata trackMetadata)
+//	@Override
+	private void launchTrackMetadata(final TrackMetadata trackMetadata)
 	{
 		if (getAVTransportService() == null)
 			return;
@@ -407,17 +410,38 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 	}
 	
+	private void launchSong(final Song song){
+		MediaServer mediaServer = getUpnpControllerService().getMediaServer();
+		TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song);
+		launchTrackMetadata(trackMetadata);
+	}
+	
 	@Override
-	public void launchPlaylist(final IPlaylistState playlistState){
-		
+	public void launchPlaylist(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		playlist.setState(IPlaylistState.State.PLAY);
+		//il resto è già gestito dall'handle!
+//		if (playlist.hasNext()){
+//			Song song = playlist.next();
+//			launchSong(song);
+//			playlist.setState(IPlaylistState.State.PLAY);
+//		}else{
+//			playlist.setState(IPlaylistState.State.STOP);
+//		}
 	}
 	
 	private void handlePlaylist(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (playlist != null){
-			if (rendererState.getState() == State.STOP && playlist.hasNext() && playlist.getState() == IPlaylistState.State.PLAY){
+			if (rendererState.getState() == State.STOP && playlist.getState() == IPlaylistState.State.PLAY){
 				//the previous song is over
-				//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX launch next song....
+				if (playlist.hasNext()){
+					//launch next song....
+					Song song = playlist.next();
+					launchSong(song);
+				}else{
+					playlist.setState(IPlaylistState.State.STOP);
+				}
 			}
 		}
 	}

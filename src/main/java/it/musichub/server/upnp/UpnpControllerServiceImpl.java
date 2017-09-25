@@ -15,15 +15,11 @@ import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
-import org.fourthline.cling.support.model.ProtocolInfo;
-import org.fourthline.cling.support.model.Res;
-import org.fourthline.cling.support.model.item.MusicTrack;
 
 import fi.iki.elonen.NanoHTTPD;
 import it.musichub.server.config.Constants;
 import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
-import it.musichub.server.library.model.Song;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
@@ -37,6 +33,7 @@ import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
+import it.musichub.server.upnp.model.IPlaylistState;
 import it.musichub.server.upnp.model.UpnpFactory;
 import it.musichub.server.upnp.model.x.IRendererCommand;
 import it.musichub.server.upnp.model.x.IRendererState;
@@ -58,7 +55,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	private UpnpService upnpService = null;
 	private IRendererState rendererState = null;
 	private IRendererCommand rendererCommand = null;
-	private MediaServer httpServer = null;
+	private MediaServer mediaServer = null;
 	
 	private final static Logger logger = Logger.getLogger(UpnpControllerServiceImpl.class);
 
@@ -75,6 +72,10 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	@Override
 	public IRendererCommand getRendererCommand(){ //TODO provvisorio
 		return rendererCommand;
+	}
+	
+	public MediaServer getMediaServer(){ //TODO provvisorio???
+		return mediaServer;
 	}
 	
 	private static boolean isValidDevice(RemoteDevice device){
@@ -133,7 +134,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 		rendererCommand = UpnpFactory.createRendererCommand(upnpService.getControlPoint(), rendererState);
 		
 		//creating http server
-		httpServer = new MediaServer(getConfiguration().getMediaHttpPort());
+		mediaServer = new MediaServer(getConfiguration().getMediaHttpPort());
 	}
 
 	@Override
@@ -145,7 +146,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 			
 		//init http server
         try {
-        	httpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+        	mediaServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         } catch (IOException ioe) {
             logger.error("Couldn't start server",ioe);
 //            System.exit(-1);
@@ -160,9 +161,6 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {}
         
-        IndexerService is = getIndexerService();
-        Folder root = is.getStartingFolder();
-        Song song0 = root.getSongs().get(0);
         
         Collection<Device> devices = deviceRegistry.values();
         for (Device device : devices){
@@ -185,21 +183,35 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
         try {
 			TimeUnit.SECONDS.sleep(4);
 		} catch (Exception e) {}
-//        MusicTrack mt = UpnpFactory.songToMusicTrack(httpServer, song0);
-        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(httpServer, song0);
-        logger.fatal("Track metadata xml: "+trackMetadata.getXML());
         
-//        Res res = new Res(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"), 5835548L, "0:04:01.000", 24000L, "http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3");
-//        TrackMetadata trackMetadataFAKE = new TrackMetadata("0$=Artist$1314$items$*i3586", "0$=Artist$1314$items", "Summer of '69", "Bryan Adams", "Rock", "", res, "object.item.audioItem.musicTrack");
-//        logger.fatal("FAKE Track metadata xml: "+trackMetadataFAKE.getXML());
+        IndexerService is = getIndexerService();
+        Folder root = is.getStartingFolder();
+//      Song song0 = root.getSongs().get(0);
+        
+        IPlaylistState playlist = rendererState.getPlaylist();
+        playlist.addFolder(root, false);
+        
+        rendererCommand.launchPlaylist();
+        //e una nextSong?? devo implementare qui tutti i controlli del player!!!!
+        
+        
+        
+        
+////        MusicTrack mt = UpnpFactory.songToMusicTrack(mediaServer, song0);
+//        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song0);
+//        logger.fatal("Track metadata xml: "+trackMetadata.getXML());
 //        
-//        - MediaInfo/TransportInfo mettere toString come PositionInfo (fare un toString da fuori)
-//        - gestione servizi con gli stati.. gestire casi di interruzione stato (es. porta http già occupata; cartella N:\ non accessibile)
-        logger.fatal("Protocol info: "+trackMetadata.res.getProtocolInfo().toString());
-//        trackMetadata.res.setProtocolInfo(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"));
-//        logger.fatal("Protocol info tarocco: "+trackMetadata.res.getProtocolInfo().toString());
-        
-        rendererCommand.launchItem2(trackMetadata);
+////        Res res = new Res(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"), 5835548L, "0:04:01.000", 24000L, "http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3");
+////        TrackMetadata trackMetadataFAKE = new TrackMetadata("0$=Artist$1314$items$*i3586", "0$=Artist$1314$items", "Summer of '69", "Bryan Adams", "Rock", "", res, "object.item.audioItem.musicTrack");
+////        logger.fatal("FAKE Track metadata xml: "+trackMetadataFAKE.getXML());
+////        
+////        - MediaInfo/TransportInfo mettere toString come PositionInfo (fare un toString da fuori)
+////        - gestione servizi con gli stati.. gestire casi di interruzione stato (es. porta http già occupata; cartella N:\ non accessibile)
+//        logger.fatal("Protocol info: "+trackMetadata.res.getProtocolInfo().toString());
+////        trackMetadata.res.setProtocolInfo(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"));
+////        logger.fatal("Protocol info tarocco: "+trackMetadata.res.getProtocolInfo().toString());
+//        
+//        rendererCommand.launchItem2(trackMetadata);
 //        try {
 //			TimeUnit.SECONDS.sleep(6);
 //		} catch (Exception e) {}
@@ -254,7 +266,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public void stop() {
-		httpServer.stop();
+		mediaServer.stop();
 		
 		upnpService.shutdown();
 		
@@ -263,7 +275,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public void destroy() {
-		httpServer = null;
+		mediaServer = null;
 		
 		upnpService = null;
 		rendererState = null;
