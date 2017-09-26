@@ -12,6 +12,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import it.musichub.server.config.ConfigUtils;
@@ -26,6 +28,7 @@ import it.musichub.server.persistence.ex.SaveException;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 import it.musichub.server.upnp.UpnpControllerService;
+import it.musichub.server.upnp.model.IPlaylistState.RepeatMode;
 
 public class ServiceFactory {
 
@@ -173,19 +176,39 @@ public class ServiceFactory {
 		//console
 		Scanner sc = new Scanner(System.in);
 		while (true) {
-			String command = sc.nextLine();
+			String line = sc.nextLine();
+			String[] lineSplit = line.split(" ");
+			String command = lineSplit.length>0 ? lineSplit[0] : null;
+			String p1 = lineSplit.length>1 ? lineSplit[1] : null;
+			String p2 = lineSplit.length>2 ? lineSplit[2] : null;
+			
 			/*
-			 * potrei cambiare il logging level
+			 * potrei cambiare da console il logging level!!
 			 * 
 			 * 
 			 * list devices
 			 * list devices online
 			 * get selected device
 			 */
+			logger.debug("Parsing shell command: "+line);
 			if ("pause".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().commandPause();
-			}else if ("play".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().commandPlay();
+//			}else if ("play".equalsIgnoreCase(command)) {
+//				getUpnpControllerService().getRendererCommand().commandPlay();
+			}else if ("lp".equalsIgnoreCase(command)) {
+				getUpnpControllerService().getRendererCommand().launchPlaylist();
+			}else if ("shuffle".equalsIgnoreCase(command)) {
+				if ("on".equalsIgnoreCase(p1))
+					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(true);
+				else if ("off".equalsIgnoreCase(p1))
+					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(false);
+			}else if ("repeat".equalsIgnoreCase(command)) {
+				if ("all".equalsIgnoreCase(p1))
+					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.ALL);
+				else if ("off".equalsIgnoreCase(p1))
+					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.OFF);
+				else if ("track".equalsIgnoreCase(p1))
+					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.TRACK);
 			}else if ("mute".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().toggleMute();
 			}else if ("vol+".equalsIgnoreCase(command)) {
@@ -196,11 +219,28 @@ public class ServiceFactory {
 				getUpnpControllerService().getRendererCommand().setVolume(vol-5);
 			}else if ("stop".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().commandStop();
+			}else if ("logger".equalsIgnoreCase(command)) {
+				if ("OFF".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.OFF);
+				else if ("FATAL".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.FATAL);
+				else if ("ERROR".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.ERROR);
+				else if ("WARN".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.WARN);
+				else if ("INFO".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.INFO);
+				else if ("DEBUG".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.DEBUG);
+				else if ("TRACE".equalsIgnoreCase(p1))
+					LogManager.getRootLogger().setLevel(Level.TRACE);
 			}else if ("exit".equalsIgnoreCase(command)) {
 				logger.info("Terminating program by exit request... ");
 				sc.close();
 				shutdown();
 				break;
+			}else{
+				logger.warn("Unknown shell command: "+line);
 			}
 		}
 	}

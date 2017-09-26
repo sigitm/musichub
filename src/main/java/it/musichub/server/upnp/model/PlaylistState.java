@@ -43,7 +43,8 @@ public class PlaylistState implements IPlaylistState {
 		clearContent();
 	}
 	
-	private synchronized void clearState(){
+	@Override
+	public synchronized void clearState(){
 		state = State.STOP;
 		currentPointer = null;
 	}
@@ -144,6 +145,11 @@ public class PlaylistState implements IPlaylistState {
 	@Override
 	public boolean isEmpty(){
 		return songs.isEmpty();
+	}
+	
+	@Override
+	public boolean hasCurrent(){
+		return getCurrentSong() != null;
 	}
 	
 	@Override

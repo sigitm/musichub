@@ -191,7 +191,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
         IPlaylistState playlist = rendererState.getPlaylist();
         playlist.addFolder(root, false);
         
-        rendererCommand.launchPlaylist();
+//        rendererCommand.launchPlaylist();
         //e una nextSong?? devo implementare qui tutti i controlli del player!!!!
         
         

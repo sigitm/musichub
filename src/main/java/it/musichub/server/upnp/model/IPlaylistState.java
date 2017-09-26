@@ -8,7 +8,7 @@ import it.musichub.server.library.model.Song;
 public interface IPlaylistState {
 
 	//state
-	public enum State {PLAY, STOP}
+	public enum State {PLAY, LAUNCHING, STOP}
 	public State getState();
 	void setState(State state);
 	
@@ -26,9 +26,11 @@ public interface IPlaylistState {
 	void removeSongs(List<Song> songs);
 	void keepSongs(List<Song> songs);
 	void clear();
+	void clearState();
 	
 	//iteration
 	boolean isEmpty();
+	boolean hasCurrent();
 	boolean hasNext();
 	Song next();
 	boolean hasPrevious();

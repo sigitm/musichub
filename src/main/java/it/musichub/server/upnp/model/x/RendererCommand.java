@@ -19,6 +19,11 @@
 
 package it.musichub.server.upnp.model.x;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.log4j.Logger;
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.action.ActionInvocation;
@@ -34,16 +39,9 @@ import org.fourthline.cling.support.avtransport.callback.Play;
 import org.fourthline.cling.support.avtransport.callback.Seek;
 import org.fourthline.cling.support.avtransport.callback.SetAVTransportURI;
 import org.fourthline.cling.support.avtransport.callback.Stop;
-import org.fourthline.cling.support.model.DIDLObject;
 import org.fourthline.cling.support.model.MediaInfo;
 import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.TransportInfo;
-import org.fourthline.cling.support.model.item.AudioItem;
-import org.fourthline.cling.support.model.item.ImageItem;
-import org.fourthline.cling.support.model.item.Item;
-import org.fourthline.cling.support.model.item.PlaylistItem;
-import org.fourthline.cling.support.model.item.TextItem;
-import org.fourthline.cling.support.model.item.VideoItem;
 import org.fourthline.cling.support.renderingcontrol.callback.GetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.GetVolume;
 import org.fourthline.cling.support.renderingcontrol.callback.SetMute;
@@ -146,8 +144,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		return clingDevice.findService(new UDAServiceType("AVTransport"));
 	}
 
-	@Override
-	public void commandPlay()
+//	@Override
+	public void commandPlay(final Method callbackMethod)
 	{
 		if (getAVTransportService() == null)
 			return;
@@ -158,12 +156,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			{
 				logger.trace("Success playing ! ");
 				// TODO update player state
+				
+				if (callbackMethod != null)
+					invokeBooleanMethod(callbackMethod, true);
 			}
 
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
 				logger.warn("Fail to play ! " + arg2);
+				
+				if (callbackMethod != null)
+					invokeBooleanMethod(callbackMethod, false);
 			}
 		});
 	}
@@ -222,7 +226,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		}
 		else
 		{
-			commandPlay();
+			commandPlay(null);
 		}
 	}
 
@@ -301,7 +305,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		setMute(!rendererState.isMute());
 	}
 
-	public void setURI(String uri, TrackMetadata trackMetadata)
+	public void setURI(String uri, TrackMetadata trackMetadata, final Method callbackMethod)
 	{
 		logger.info("Set uri to " + uri);
 
@@ -312,17 +316,30 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			{
 				super.success(invocation);
 				logger.info("URI successfully set !");
-				commandPlay();
+				commandPlay(callbackMethod);
 			}
 
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
 				logger.warn("Fail to set URI ! " + arg2);
+				
+				if (callbackMethod != null)
+					invokeBooleanMethod(callbackMethod, false);
 			}
 		});
 	}
 
+	private void invokeBooleanMethod(Method method, boolean value){
+		try {
+			method.setAccessible(true);
+			method.invoke(this, value);
+		} catch (Exception e) {
+			logger.warn("Cannot invoke callback method "+method+" with value "+value);
+		}
+	}
+
+	
 //	@Override
 //	public void launchItem(final IDIDLItem item)
 //	{
@@ -379,7 +396,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 //	}
 	
 //	@Override
-	private void launchTrackMetadata(final TrackMetadata trackMetadata)
+	private void launchTrackMetadata(final TrackMetadata trackMetadata, final Method callbackMethod)
 	{
 		if (getAVTransportService() == null)
 			return;
@@ -404,30 +421,111 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 			public void callback()
 			{
-				setURI(trackMetadata.res.getValue(), trackMetadata);
+				setURI(trackMetadata.res.getValue(), trackMetadata, callbackMethod);
 			}
 		});
 
 	}
 	
+	private void launchTrackMetadata2(final TrackMetadata trackMetadata) throws InterruptedException, ExecutionException
+	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//TODO fare tutti i metodi _sync e _async? XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	/*
+	 * playlistState = LAUNCHING
+	 * stop_sync (result non importante)
+	 * setURI_sync
+	 * if (result)
+	 *    result = playCommand_sync
+	 *    updateTransport_sync
+	 *    [if state==play] //devo controllare che sia andato bene?? in caso contrario potrei settare un playlist.stop
+	 *    aggiornare il playlistState a PLAY/STOP in base al result (A QUESTO PUNTO handlePlaylist NON DOVREBBE INTERFERIRE IN QUANTO HO GIA' AGG. IL TRANSPORT)
+	 * else
+	 *    playlistState = STOP
+	 */
+	{
+		if (getAVTransportService() == null)
+			return;
+
+		logger.info("TrackMetadata : "+trackMetadata.toString());
+
+		// Stop playback before setting URI
+		Future f = controlPoint.execute(new Stop(getAVTransportService()) {
+			@Override
+			public void success(ActionInvocation invocation)
+			{
+				logger.trace("Success stopping ! ");
+			}
+
+			@Override
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
+			{
+				logger.warn("Fail to stop ! " + arg2);
+			}
+		});
+		f.get();
+//		final MutableBoolean result = new MutableBoolean();
+//		f = controlPoint.execute(new SetAVTransportURI(getAVTransportService(), trackMetadata.res.getValue(), trackMetadata.getXML()) {
+//
+//			@Override
+//			public void success(ActionInvocation invocation)
+//			{
+//				super.success(invocation);
+//				logger.info("URI successfully set !");
+//				commandPlay(callbackMethod);
+//				result.setTrue();
+//			}
+//
+//			@Override
+//			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
+//			{
+//				logger.warn("Fail to set URI ! " + arg2);
+//				
+//				if (callbackMethod != null)
+//					invokeBooleanMethod(callbackMethod, false);
+//			}
+//		});
+//		f.get();
+
+	}
+	
 	private void launchSong(final Song song){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		playlist.setState(IPlaylistState.State.LAUNCHING);
+		
 		MediaServer mediaServer = getUpnpControllerService().getMediaServer();
 		TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song);
-		launchTrackMetadata(trackMetadata);
+		Method callbackMethod = null;
+		try {
+			callbackMethod = this.getClass().getDeclaredMethod("launchSongCallback", boolean.class);
+		} catch (Exception e) {
+			logger.error("Error loading callback method launchSongCallback", e);
+		}
+		launchTrackMetadata(trackMetadata, callbackMethod);
+	}
+	
+	private void launchSongCallback(boolean result){
+		logger.trace("launchSongCallback("+result+")");
+		IPlaylistState playlist = rendererState.getPlaylist();
+		playlist.setState(result ? IPlaylistState.State.PLAY : IPlaylistState.State.STOP);
 	}
 	
 	@Override
 	public void launchPlaylist(){
 		IPlaylistState playlist = rendererState.getPlaylist();
-		playlist.setState(IPlaylistState.State.PLAY);
-		//il resto è già gestito dall'handle!
-//		if (playlist.hasNext()){
-//			Song song = playlist.next();
-//			launchSong(song);
-//			playlist.setState(IPlaylistState.State.PLAY);
-//		}else{
-//			playlist.setState(IPlaylistState.State.STOP);
-//		}
+		
+		if (playlist.hasCurrent()){
+			Song song = playlist.getCurrentSong();
+			logger.debug("launchPlaylist: launching current song: "+song);
+			launchSong(song);
+		}else if (playlist.hasNext()){
+			Song song = playlist.next();
+			logger.debug("launchPlaylist: launching next song: "+song);
+			launchSong(song);
+		}else{
+			logger.debug("launchPlaylist: stopping playlist");
+			playlist.setState(IPlaylistState.State.STOP);
+		}
 	}
 	
 	private void handlePlaylist(){
@@ -436,10 +534,12 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			if (rendererState.getState() == State.STOP && playlist.getState() == IPlaylistState.State.PLAY){
 				//the previous song is over
 				if (playlist.hasNext()){
-					//launch next song....
+					//launching next song....
 					Song song = playlist.next();
+					logger.debug("handlePlaylist: launching next song: "+song);
 					launchSong(song);
 				}else{
+					logger.debug("handlePlaylist: playlist ended");
 					playlist.setState(IPlaylistState.State.STOP);
 				}
 			}
