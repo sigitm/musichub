@@ -6,7 +6,7 @@ import java.util.List;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
-import it.musichub.server.upnp.model.x.IRendererState.State;
+import it.musichub.server.upnp.renderer.IRendererState.State;
 
 public class PlaylistState implements IPlaylistState {
 

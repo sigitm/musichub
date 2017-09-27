@@ -34,10 +34,10 @@ import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
 import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.TrackMetadata;
 import it.musichub.server.upnp.model.UpnpFactory;
-import it.musichub.server.upnp.model.x.IRendererCommand;
-import it.musichub.server.upnp.model.x.IRendererState;
-import it.musichub.server.upnp.model.x.TrackMetadata;
+import it.musichub.server.upnp.renderer.IRendererCommand;
+import it.musichub.server.upnp.renderer.IRendererState;
 
 public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements UpnpControllerService {
 

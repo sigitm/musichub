@@ -1,4 +1,4 @@
-package it.musichub.server.upnp.model.x;
+package it.musichub.server.upnp.renderer;
 
 import it.musichub.server.upnp.model.IPlaylistState;
 

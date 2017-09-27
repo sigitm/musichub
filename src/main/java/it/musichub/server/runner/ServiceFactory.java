@@ -192,7 +192,7 @@ public class ServiceFactory {
 			 */
 			logger.debug("Parsing shell command: "+line);
 			if ("pause".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().commandPause();
+				getUpnpControllerService().getRendererCommand().commandPause(false);
 //			}else if ("play".equalsIgnoreCase(command)) {
 //				getUpnpControllerService().getRendererCommand().commandPlay();
 			}else if ("lp".equalsIgnoreCase(command)) {
@@ -218,7 +218,7 @@ public class ServiceFactory {
 				int vol = getUpnpControllerService().getRendererState().getVolume();
 				getUpnpControllerService().getRendererCommand().setVolume(vol-5);
 			}else if ("stop".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().commandStop();
+				getUpnpControllerService().getRendererCommand().commandStop(false);
 			}else if ("logger".equalsIgnoreCase(command)) {
 				if ("OFF".equalsIgnoreCase(p1))
 					LogManager.getRootLogger().setLevel(Level.OFF);

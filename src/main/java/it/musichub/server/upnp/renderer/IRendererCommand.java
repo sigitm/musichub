@@ -17,14 +17,13 @@
  * along with DroidUPNP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.musichub.server.upnp.model.x;
+package it.musichub.server.upnp.renderer;
 
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.support.avtransport.callback.Stop;
 
 import it.musichub.server.library.model.Song;
-import it.musichub.server.upnp.MediaServer;
 import it.musichub.server.upnp.model.IPlaylistState;
 import it.musichub.server.upnp.model.UpnpFactory;
 
@@ -36,13 +35,13 @@ public interface IRendererCommand {
 	public void resume();
 
 	// / Status
-//	public void commandPlay();
+	public Boolean commandPlay(boolean sync);
 
-	public void commandStop();
+	public Boolean commandStop(boolean sync);
 
-	public void commandPause();
+	public Boolean commandPause(boolean sync);
 
-	public void commandToggle();
+	public Boolean commandToggle(boolean sync);
 
 	public void updateStatus();
 

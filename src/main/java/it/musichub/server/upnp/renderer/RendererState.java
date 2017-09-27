@@ -17,7 +17,7 @@
  * along with DroidUPNP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.musichub.server.upnp.model.x;
+package it.musichub.server.upnp.renderer;
 
 import org.apache.log4j.Logger;
 import org.fourthline.cling.support.model.MediaInfo;
@@ -27,6 +27,7 @@ import org.fourthline.cling.support.model.TransportState;
 
 import it.musichub.server.upnp.model.IPlaylistState;
 import it.musichub.server.upnp.model.PlaylistState;
+import it.musichub.server.upnp.model.TrackMetadata;
 
 public class RendererState implements IRendererState {
 

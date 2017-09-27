@@ -12,8 +12,8 @@ import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceService;
 import it.musichub.server.upnp.model.IPlaylistState.RepeatMode;
-import it.musichub.server.upnp.model.x.IRendererCommand;
-import it.musichub.server.upnp.model.x.IRendererState;
+import it.musichub.server.upnp.renderer.IRendererCommand;
+import it.musichub.server.upnp.renderer.IRendererState;
 
 public interface UpnpControllerService extends IMusicHubService {
 

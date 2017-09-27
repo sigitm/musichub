@@ -17,10 +17,13 @@
  * along with DroidUPNP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.musichub.server.upnp.model.x;
+package it.musichub.server.upnp.renderer;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -55,8 +58,9 @@ import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.IPlaylistState;
+import it.musichub.server.upnp.model.TrackMetadata;
 import it.musichub.server.upnp.model.UpnpFactory;
-import it.musichub.server.upnp.model.x.IRendererState.State;
+import it.musichub.server.upnp.renderer.IRendererState.State;
 
 @SuppressWarnings("rawtypes")
 public class RendererCommand implements Runnable, IRendererCommand {
@@ -108,7 +112,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		return (UpnpControllerService) ServiceFactory.getServiceInstance(it.musichub.server.runner.ServiceRegistry.Service.upnpcontroller);
 	}
 	
-	public static Service getRenderingControlService() {
+	private static Service getRenderingControlService() {
 		UpnpControllerService ds = getUpnpControllerService();
 		try {
 			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
@@ -126,7 +130,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		return clingDevice.findService(new UDAServiceType("RenderingControl"));
 	}
 
-	public static Service getAVTransportService() {
+	private static Service getAVTransportService() {
 		UpnpControllerService ds = getUpnpControllerService();
 		try {
 			if (!ds.isDeviceSelected() || !ds.isSelectedDeviceOnline())
@@ -144,21 +148,30 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		return clingDevice.findService(new UDAServiceType("AVTransport"));
 	}
 
-//	@Override
-	public void commandPlay(final Method callbackMethod)
-	{
+	private static void syncWait(Future f){
+		try {
+			f.get();
+		} catch (InterruptedException | ExecutionException e) {
+			logger.warn("Error waiting for async operation to end", e);
+		}
+	}
+	
+	@Override
+	public Boolean commandPlay(boolean sync){
+		
+    	final MutableBoolean result = new MutableBoolean(false);
+    	
 		if (getAVTransportService() == null)
-			return;
-
-		controlPoint.execute(new Play(getAVTransportService()) {
+			return null;
+		
+    	Future f = controlPoint.execute(new Play(getAVTransportService()) {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
 				logger.trace("Success playing ! ");
 				// TODO update player state
 				
-				if (callbackMethod != null)
-					invokeBooleanMethod(callbackMethod, true);
+				result.setTrue();
 			}
 
 			@Override
@@ -166,68 +179,96 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			{
 				logger.warn("Fail to play ! " + arg2);
 				
-				if (callbackMethod != null)
-					invokeBooleanMethod(callbackMethod, false);
+				result.setFalse();
 			}
 		});
+    	
+    	if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
-
+	
 	@Override
-	public void commandStop()
-	{
+	public Boolean commandStop(boolean sync){
+		
+    	final MutableBoolean result = new MutableBoolean(false);
+    	
 		if (getAVTransportService() == null)
-			return;
-
-		controlPoint.execute(new Stop(getAVTransportService()) {
+			return null;
+		
+    	Future f = controlPoint.execute(new Stop(getAVTransportService()) {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
 				logger.trace("Success stopping ! ");
 				// TODO update player state
+				
+				result.setTrue();
 			}
 
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
 				logger.warn("Fail to stop ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+    	
+    	if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
-
+	
 	@Override
-	public void commandPause()
-	{
+	public Boolean commandPause(boolean sync){
+		
+    	final MutableBoolean result = new MutableBoolean(false);
+    	
 		if (getAVTransportService() == null)
-			return;
-
-		controlPoint.execute(new Pause(getAVTransportService()) {
+			return null;
+		
+    	Future f = controlPoint.execute(new Stop(getAVTransportService()) {
 			@Override
 			public void success(ActionInvocation invocation)
 			{
-				logger.trace("Success pausing ! ");
+				logger.trace("Success stopping ! ");
 				// TODO update player state
+				
+				result.setTrue();
 			}
 
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
-				logger.warn("Fail to pause ! " + arg2);
+				logger.warn("Fail to stop ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+    	
+    	if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
-
+	
 	@Override
-	public void commandToggle()
+	public Boolean commandToggle(boolean sync)
 	{
 		RendererState.State state = rendererState.getState();
 		if (state == RendererState.State.PLAY)
-		{
-			commandPause();
-		}
+			return commandPause(sync);
 		else
-		{
-			commandPlay(null);
-		}
+			return commandPlay(sync);
 	}
 
 	@Override
@@ -305,7 +346,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		setMute(!rendererState.isMute());
 	}
 
-	public void setURI(String uri, TrackMetadata trackMetadata, final Method callbackMethod)
+	public void setURI(String uri, TrackMetadata trackMetadata)
 	{
 		logger.info("Set uri to " + uri);
 
@@ -316,28 +357,25 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			{
 				super.success(invocation);
 				logger.info("URI successfully set !");
-				commandPlay(callbackMethod);
+				commandPlay(false);
 			}
 
 			@Override
 			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
 			{
 				logger.warn("Fail to set URI ! " + arg2);
-				
-				if (callbackMethod != null)
-					invokeBooleanMethod(callbackMethod, false);
 			}
 		});
 	}
 
-	private void invokeBooleanMethod(Method method, boolean value){
-		try {
-			method.setAccessible(true);
-			method.invoke(this, value);
-		} catch (Exception e) {
-			logger.warn("Cannot invoke callback method "+method+" with value "+value);
-		}
-	}
+//	private void invokeBooleanMethod(Method method, boolean value){
+//		try {
+//			method.setAccessible(true);
+//			method.invoke(this, value);
+//		} catch (Exception e) {
+//			logger.warn("Cannot invoke callback method "+method+" with value "+value);
+//		}
+//	}
 
 	
 //	@Override
@@ -396,7 +434,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 //	}
 	
 //	@Override
-	private void launchTrackMetadata(final TrackMetadata trackMetadata, final Method callbackMethod)
+	private void launchTrackMetadata(final TrackMetadata trackMetadata)
 	{
 		if (getAVTransportService() == null)
 			return;
@@ -421,7 +459,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 			public void callback()
 			{
-				setURI(trackMetadata.res.getValue(), trackMetadata, callbackMethod);
+				setURI(trackMetadata.res.getValue(), trackMetadata);
 			}
 		});
 
@@ -495,13 +533,13 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		
 		MediaServer mediaServer = getUpnpControllerService().getMediaServer();
 		TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song);
-		Method callbackMethod = null;
+		/*Method callbackMethod = null;
 		try {
 			callbackMethod = this.getClass().getDeclaredMethod("launchSongCallback", boolean.class);
 		} catch (Exception e) {
 			logger.error("Error loading callback method launchSongCallback", e);
-		}
-		launchTrackMetadata(trackMetadata, callbackMethod);
+		}*/
+		launchTrackMetadata(trackMetadata/*, callbackMethod*/);
 	}
 	
 	private void launchSongCallback(boolean result){

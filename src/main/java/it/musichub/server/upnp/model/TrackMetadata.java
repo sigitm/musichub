@@ -1,4 +1,4 @@
-package it.musichub.server.upnp.model.x;
+package it.musichub.server.upnp.model;
 
 import java.io.StringReader;
 import java.io.StringWriter;

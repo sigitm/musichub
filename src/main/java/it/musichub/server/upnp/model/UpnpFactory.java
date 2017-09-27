@@ -18,11 +18,10 @@ import org.seamless.util.MimeType;
 
 import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.MediaServer;
-import it.musichub.server.upnp.model.x.IRendererCommand;
-import it.musichub.server.upnp.model.x.IRendererState;
-import it.musichub.server.upnp.model.x.RendererCommand;
-import it.musichub.server.upnp.model.x.RendererState;
-import it.musichub.server.upnp.model.x.TrackMetadata;
+import it.musichub.server.upnp.renderer.IRendererCommand;
+import it.musichub.server.upnp.renderer.IRendererState;
+import it.musichub.server.upnp.renderer.RendererCommand;
+import it.musichub.server.upnp.renderer.RendererState;
 
 public class UpnpFactory {
 
