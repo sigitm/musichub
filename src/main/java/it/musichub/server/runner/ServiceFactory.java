@@ -198,29 +198,45 @@ public class ServiceFactory {
 			}else if ("lp".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().launchPlaylist();
 			}else if ("shuffle".equalsIgnoreCase(command)) {
-				if ("on".equalsIgnoreCase(p1))
+				if (p1 == null)
+					logger.info("shuffle = "+getUpnpControllerService().getRendererState().getPlaylist().getShuffle());
+				else if ("on".equalsIgnoreCase(p1))
 					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(true);
 				else if ("off".equalsIgnoreCase(p1))
 					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(false);
 			}else if ("repeat".equalsIgnoreCase(command)) {
-				if ("all".equalsIgnoreCase(p1))
+				if (p1 == null)
+					logger.info("repeat = "+getUpnpControllerService().getRendererState().getPlaylist().getRepeat());
+				else if ("all".equalsIgnoreCase(p1))
 					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.ALL);
 				else if ("off".equalsIgnoreCase(p1))
 					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.OFF);
 				else if ("track".equalsIgnoreCase(p1))
 					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.TRACK);
 			}else if ("mute".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().toggleMute();
-			}else if ("vol+".equalsIgnoreCase(command)) {
+				getUpnpControllerService().getRendererCommand().toggleMute(false);
+			}else if ("vol".equalsIgnoreCase(command)) {
 				int vol = getUpnpControllerService().getRendererState().getVolume();
-				getUpnpControllerService().getRendererCommand().setVolume(vol+5);
-			}else if ("vol-".equalsIgnoreCase(command)) {
-				int vol = getUpnpControllerService().getRendererState().getVolume();
-				getUpnpControllerService().getRendererCommand().setVolume(vol-5);
+				if (p1 == null)
+					logger.info("vol = "+getUpnpControllerService().getRendererState().getVolume());
+				else{
+					int bias = 5;
+					try {
+						bias = Integer.parseInt(p2);
+					} catch (Exception e) {
+						//nothing to do
+					}
+					if ("+".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererCommand().setVolume(vol+bias, false);
+					else if ("-".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererCommand().setVolume(vol-bias, false);
+				}
 			}else if ("stop".equalsIgnoreCase(command)) {
 				getUpnpControllerService().getRendererCommand().commandStop(false);
 			}else if ("logger".equalsIgnoreCase(command)) {
-				if ("OFF".equalsIgnoreCase(p1))
+				if (p1 == null)
+					logger.info("logger level = "+LogManager.getRootLogger().getLevel());
+				else if ("OFF".equalsIgnoreCase(p1))
 					LogManager.getRootLogger().setLevel(Level.OFF);
 				else if ("FATAL".equalsIgnoreCase(p1))
 					LogManager.getRootLogger().setLevel(Level.FATAL);
@@ -243,6 +259,21 @@ public class ServiceFactory {
 				logger.warn("Unknown shell command: "+line);
 			}
 		}
+	}
+	
+	private static boolean isInteger(String s) {
+		if (s == null)
+			return false;
+		
+	    try { 
+	        Integer.parseInt(s); 
+	    } catch(NumberFormatException e) { 
+	        return false; 
+	    } catch(NullPointerException e) {
+	        return false;
+	    }
+	    // only got here if we didn't return false
+	    return true;
 	}
 	
 	private UpnpControllerService getUpnpControllerService(){

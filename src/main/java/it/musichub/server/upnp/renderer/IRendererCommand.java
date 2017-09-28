@@ -19,20 +19,14 @@
 
 package it.musichub.server.upnp.renderer;
 
-import org.fourthline.cling.model.action.ActionInvocation;
-import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.support.avtransport.callback.Stop;
-
-import it.musichub.server.library.model.Song;
-import it.musichub.server.upnp.model.IPlaylistState;
-import it.musichub.server.upnp.model.UpnpFactory;
+import it.musichub.server.upnp.model.TrackMetadata;
 
 public interface IRendererCommand {
 
 	// Pause/resume backgroud state update
-	public void pause();
+	public void pauseUpdates();
 
-	public void resume();
+	public void resumeUpdates();
 
 	// / Status
 	public Boolean commandPlay(boolean sync);
@@ -43,28 +37,29 @@ public interface IRendererCommand {
 
 	public Boolean commandToggle(boolean sync);
 
-	public void updateStatus();
+	public Boolean updateStatus(boolean sync);
 
 	// / Position
-	public void commandSeek(String relativeTimeTarget);
+	public Boolean commandSeek(String relativeTimeTarget, boolean sync);
 
-	public void updatePosition();
+	public Boolean updatePosition(boolean sync);
 
 	// / Volume
-	public void setVolume(final int volume);
+	public Boolean setVolume(final int volume, boolean sync);
 
-	public void setMute(final boolean mute);
+	public Boolean setMute(final boolean mute, boolean sync);
 
-	public void toggleMute();
+	public Boolean toggleMute(boolean sync);
 
-	public void updateVolume();
+	public Boolean updateVolume(boolean sync);
 
 	// / URI
+	public Boolean setURI(String uri, TrackMetadata trackMetadata, boolean sync);
 //	public void launchItem(final IDIDLItem uri);
 //	public void launchTrackMetadata(final TrackMetadata trackMetadata);
 	public void launchPlaylist();
 
 	// / Update
-	public void updateFull();
+	public void updateFull(boolean sync);
 
 }

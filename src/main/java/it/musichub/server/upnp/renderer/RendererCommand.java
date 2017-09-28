@@ -74,8 +74,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	public Thread thread;
 	boolean pause = false;
 
-	public RendererCommand(ControlPoint controlPoint, RendererState rendererState)
-	{
+	public RendererCommand(ControlPoint controlPoint, RendererState rendererState){
 		this.rendererState = rendererState;
 		this.controlPoint = controlPoint;
 
@@ -84,22 +83,19 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 
 	@Override
-	public void finalize()
-	{
-		this.pause();
+	public void finalize(){
+		this.pauseUpdates();
 	}
 
 	@Override
-	public void pause()
-	{
+	public void pauseUpdates(){
 		logger.trace("Interrupt");
 		pause = true;
 		thread.interrupt();
 	}
 
 	@Override
-	public void resume()
-	{
+	public void resumeUpdates(){
 		logger.trace("Resume");
 		pause = false;
 		if (!thread.isAlive())
@@ -156,9 +152,11 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		}
 	}
 	
+	
+	// ********************** AVTransportService commands **********************
+	
 	@Override
-	public Boolean commandPlay(boolean sync){
-		
+	public Boolean commandPlay(final boolean sync){
     	final MutableBoolean result = new MutableBoolean(false);
     	
 		if (getAVTransportService() == null)
@@ -166,17 +164,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		
     	Future f = controlPoint.execute(new Play(getAVTransportService()) {
 			@Override
-			public void success(ActionInvocation invocation)
-			{
+			public void success(ActionInvocation invocation){
 				logger.trace("Success playing ! ");
-				// TODO update player state
 				
 				result.setTrue();
+				
+				//success related operations
+				updateTransportInfo(sync);
+				updatePositionInfo(sync);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to play ! " + arg2);
 				
 				result.setFalse();
@@ -192,8 +191,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 	
 	@Override
-	public Boolean commandStop(boolean sync){
-		
+	public Boolean commandStop(final boolean sync){
     	final MutableBoolean result = new MutableBoolean(false);
     	
 		if (getAVTransportService() == null)
@@ -201,17 +199,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		
     	Future f = controlPoint.execute(new Stop(getAVTransportService()) {
 			@Override
-			public void success(ActionInvocation invocation)
-			{
+			public void success(ActionInvocation invocation){
 				logger.trace("Success stopping ! ");
 				// TODO update player state
 				
 				result.setTrue();
+				
+				//success related operations
+				updateTransportInfo(sync);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to stop ! " + arg2);
 				
 				result.setFalse();
@@ -227,8 +226,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 	
 	@Override
-	public Boolean commandPause(boolean sync){
-		
+	public Boolean commandPause(final boolean sync){
     	final MutableBoolean result = new MutableBoolean(false);
     	
 		if (getAVTransportService() == null)
@@ -236,17 +234,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		
     	Future f = controlPoint.execute(new Stop(getAVTransportService()) {
 			@Override
-			public void success(ActionInvocation invocation)
-			{
+			public void success(ActionInvocation invocation){
 				logger.trace("Success stopping ! ");
 				// TODO update player state
 				
 				result.setTrue();
+				
+				//success related operations
+				updateTransportInfo(sync);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to stop ! " + arg2);
 				
 				result.setFalse();
@@ -262,8 +261,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 	
 	@Override
-	public Boolean commandToggle(boolean sync)
-	{
+	public Boolean commandToggle(final boolean sync){
 		RendererState.State state = rendererState.getState();
 		if (state == RendererState.State.PLAY)
 			return commandPause(sync);
@@ -272,100 +270,153 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 
 	@Override
-	public void commandSeek(String relativeTimeTarget)
-	{
+	public Boolean commandSeek(String relativeTimeTarget, final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
+		
 		if (getAVTransportService() == null)
-			return;
+			return null;
 
-		controlPoint.execute(new Seek(getAVTransportService(), relativeTimeTarget) {
+		Future f = controlPoint.execute(new Seek(getAVTransportService(), relativeTimeTarget) {
 			// TODO fix it, what is relativeTimeTarget ? :)
 
 			@Override
-			public void success(ActionInvocation invocation)
-			{
+			public void success(ActionInvocation invocation){
 				logger.trace("Success seeking !");
 				// TODO update player state
+				
+				result.setTrue();
+				
+				//success related operations
+				updateTransportInfo(sync);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to seek ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+    	if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
+	}
+	
+	@Override
+	public Boolean setURI(String uri, TrackMetadata trackMetadata, final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
+		
+		if (getAVTransportService() == null)
+			return null;
+		
+		logger.info("Setting uri to " + uri);
+
+		Future f = controlPoint.execute(new SetAVTransportURI(getAVTransportService(), uri, trackMetadata.getXML()) {
+
+			@Override
+			public void success(ActionInvocation invocation){
+				logger.info("URI successfully set !");
+				
+				result.setTrue();
+				
+				//success related operations
+				updateMediaInfo(sync);
+			}
+
+			@Override
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
+				logger.warn("Fail to set URI ! " + arg2);
+				
+				result.setFalse();
+			}
+		});
+		
+    	if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
+	
+	// ********************** RenderingControlService commands **********************
+	
 	@Override
-	public void setVolume(final int volume)
-	{
+	public Boolean setVolume(final int volume, final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
+		
 		if (getRenderingControlService() == null)
-			return;
+			return null;
 
-		controlPoint.execute(new SetVolume(getRenderingControlService(), volume) {
+		Future f = controlPoint.execute(new SetVolume(getRenderingControlService(), volume) {
 			@Override
-			public void success(ActionInvocation invocation)
-			{
-				super.success(invocation);
+			public void success(ActionInvocation invocation){
 				logger.trace("Success to set volume");
+				
+				result.setTrue();
+				
+				//success related operations
 				rendererState.setVolume(volume);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to set volume ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
 	@Override
-	public void setMute(final boolean mute)
-	{
+	public Boolean setMute(final boolean mute, final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
+		
 		if (getRenderingControlService() == null)
-			return;
+			return null;
 
-		controlPoint.execute(new SetMute(getRenderingControlService(), mute) {
+		Future f = controlPoint.execute(new SetMute(getRenderingControlService(), mute) {
 			@Override
-			public void success(ActionInvocation invocation)
-			{
+			public void success(ActionInvocation invocation){
 				logger.trace("Success setting mute status ! ");
+				
+				result.setTrue();
+				
+				//success related operations
 				rendererState.setMute(mute);
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to set mute status ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
 	@Override
-	public void toggleMute()
-	{
-		setMute(!rendererState.isMute());
-	}
-
-	public void setURI(String uri, TrackMetadata trackMetadata)
-	{
-		logger.info("Set uri to " + uri);
-
-		controlPoint.execute(new SetAVTransportURI(getAVTransportService(), uri, trackMetadata.getXML()) {
-
-			@Override
-			public void success(ActionInvocation invocation)
-			{
-				super.success(invocation);
-				logger.info("URI successfully set !");
-				commandPlay(false);
-			}
-
-			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
-				logger.warn("Fail to set URI ! " + arg2);
-			}
-		});
+	public Boolean toggleMute(final boolean sync){
+		return setMute(!rendererState.isMute(), sync);
 	}
 
 //	private void invokeBooleanMethod(Method method, boolean value){
@@ -433,39 +484,39 @@ public class RendererCommand implements Runnable, IRendererCommand {
 //
 //	}
 	
-//	@Override
-	private void launchTrackMetadata(final TrackMetadata trackMetadata)
-	{
-		if (getAVTransportService() == null)
-			return;
-
-		logger.info("TrackMetadata : "+trackMetadata.toString());
-
-		// Stop playback before setting URI
-		controlPoint.execute(new Stop(getAVTransportService()) {
-			@Override
-			public void success(ActionInvocation invocation)
-			{
-				logger.trace("Success stopping ! ");
-				callback();
-			}
-
-			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
-				logger.warn("Fail to stop ! " + arg2);
-				callback();
-			}
-
-			public void callback()
-			{
-				setURI(trackMetadata.res.getValue(), trackMetadata);
-			}
-		});
-
-	}
+////	@Override
+//	private void launchTrackMetadata(final TrackMetadata trackMetadata)
+//	{
+//		if (getAVTransportService() == null)
+//			return;
+//
+//		logger.info("TrackMetadata : "+trackMetadata.toString());
+//
+//		// Stop playback before setting URI
+//		controlPoint.execute(new Stop(getAVTransportService()) {
+//			@Override
+//			public void success(ActionInvocation invocation)
+//			{
+//				logger.trace("Success stopping ! ");
+//				callback();
+//			}
+//
+//			@Override
+//			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
+//			{
+//				logger.warn("Fail to stop ! " + arg2);
+//				callback();
+//			}
+//
+//			public void callback()
+//			{
+//				setURI(trackMetadata.res.getValue(), trackMetadata);
+//			}
+//		});
+//
+//	}
 	
-	private void launchTrackMetadata2(final TrackMetadata trackMetadata) throws InterruptedException, ExecutionException
+	private synchronized void launchTrackMetadata2(final TrackMetadata trackMetadata){
 	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	//TODO fare tutti i metodi _sync e _async? XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -475,61 +526,34 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	 * setURI_sync
 	 * if (result)
 	 *    result = playCommand_sync
-	 *    updateTransport_sync
 	 *    [if state==play] //devo controllare che sia andato bene?? in caso contrario potrei settare un playlist.stop
 	 *    aggiornare il playlistState a PLAY/STOP in base al result (A QUESTO PUNTO handlePlaylist NON DOVREBBE INTERFERIRE IN QUANTO HO GIA' AGG. IL TRANSPORT)
 	 * else
 	 *    playlistState = STOP
 	 */
-	{
-		if (getAVTransportService() == null)
-			return;
-
-		logger.info("TrackMetadata : "+trackMetadata.toString());
-
-		// Stop playback before setting URI
-		Future f = controlPoint.execute(new Stop(getAVTransportService()) {
-			@Override
-			public void success(ActionInvocation invocation)
-			{
-				logger.trace("Success stopping ! ");
-			}
-
-			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
-				logger.warn("Fail to stop ! " + arg2);
-			}
-		});
-		f.get();
-//		final MutableBoolean result = new MutableBoolean();
-//		f = controlPoint.execute(new SetAVTransportURI(getAVTransportService(), trackMetadata.res.getValue(), trackMetadata.getXML()) {
-//
-//			@Override
-//			public void success(ActionInvocation invocation)
-//			{
-//				super.success(invocation);
-//				logger.info("URI successfully set !");
-//				commandPlay(callbackMethod);
-//				result.setTrue();
-//			}
-//
-//			@Override
-//			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-//			{
-//				logger.warn("Fail to set URI ! " + arg2);
-//				
-//				if (callbackMethod != null)
-//					invokeBooleanMethod(callbackMethod, false);
-//			}
-//		});
-//		f.get();
-
+	
+		IPlaylistState playlist = rendererState.getPlaylist();
+		playlist.setState(IPlaylistState.State.LAUNCHING);
+		
+		// Stopping potential playback before setting URI
+		commandStop(true);
+		
+		// Setting URI
+		Boolean res = setURI(trackMetadata.res.getValue(), trackMetadata, true);
+		
+		if (Boolean.TRUE.equals(res)){
+			//playing selected URI
+			res = commandPlay(true);
+			
+			playlist.setState(Boolean.TRUE.equals(res) ? IPlaylistState.State.PLAY : IPlaylistState.State.STOP);
+		}else{
+			playlist.setState(IPlaylistState.State.STOP);
+		}
 	}
 	
 	private void launchSong(final Song song){
 		IPlaylistState playlist = rendererState.getPlaylist();
-		playlist.setState(IPlaylistState.State.LAUNCHING);
+		playlist.setState(IPlaylistState.State.LAUNCHING);///TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX l'ho già messo di là
 		
 		MediaServer mediaServer = getUpnpControllerService().getMediaServer();
 		TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song);
@@ -539,17 +563,11 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		} catch (Exception e) {
 			logger.error("Error loading callback method launchSongCallback", e);
 		}*/
-		launchTrackMetadata(trackMetadata/*, callbackMethod*/);
-	}
-	
-	private void launchSongCallback(boolean result){
-		logger.trace("launchSongCallback("+result+")");
-		IPlaylistState playlist = rendererState.getPlaylist();
-		playlist.setState(result ? IPlaylistState.State.PLAY : IPlaylistState.State.STOP);
+		launchTrackMetadata2(trackMetadata);
 	}
 	
 	@Override
-	public void launchPlaylist(){
+	public synchronized void launchPlaylist(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		
 		if (playlist.hasCurrent()){
@@ -566,7 +584,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		}
 	}
 	
-	private void handlePlaylist(){
+	private synchronized void handlePlaylistProgression(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (playlist != null){
 			if (rendererState.getState() == State.STOP && playlist.getState() == IPlaylistState.State.PLAY){
@@ -583,127 +601,179 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			}
 		}
 	}
+	
+	
+	
+
+	// ********************** Updates **********************
+
+	public Boolean updateMediaInfo(final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
 		
-	
-	
-
-	// Update
-
-	public void updateMediaInfo()
-	{
 		if (getAVTransportService() == null)
-			return;
+			return null;
 
-		controlPoint.execute(new GetMediaInfo(getAVTransportService()) {
+		Future f = controlPoint.execute(new GetMediaInfo(getAVTransportService()) {
 			@Override
-			public void received(ActionInvocation arg0, MediaInfo arg1)
-			{
+			public void received(ActionInvocation arg0, MediaInfo arg1){
 				logger.debug("Receive media info ! " + arg1);
 				rendererState.setMediaInfo(arg1);
+				
+				result.setTrue();
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to get media info ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
-	public void updatePositionInfo()
-	{
-		if (getAVTransportService() == null)
-			return;
+	public Boolean updatePositionInfo(final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
 
-		controlPoint.execute(new GetPositionInfo(getAVTransportService()) {
+		if (getAVTransportService() == null)
+			return null;
+
+		Future f = controlPoint.execute(new GetPositionInfo(getAVTransportService()) {
 			@Override
-			public void received(ActionInvocation arg0, PositionInfo arg1)
-			{
+			public void received(ActionInvocation arg0, PositionInfo arg1){
 				logger.debug("Receive position info ! " + arg1);
 				rendererState.setPositionInfo(arg1);
+				
+				result.setTrue();
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to get position info ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
-	public void updateTransportInfo()
-	{
+	public Boolean updateTransportInfo(final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
+		
 		if (getAVTransportService() == null)
-			return;
+			return null;
 
-		controlPoint.execute(new GetTransportInfo(getAVTransportService()) {
+		Future f = controlPoint.execute(new GetTransportInfo(getAVTransportService()) {
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
-				logger.warn("Fail to get transport info ! " + arg2);
-			}
-
-			@Override
-			public void received(ActionInvocation arg0, TransportInfo arg1)
-			{
+			public void received(ActionInvocation arg0, TransportInfo arg1){
 				logger.debug("Receive transport info ! " + arg1);
 				rendererState.setTransportInfo(arg1);
-				handlePlaylist();
+				
+				result.setTrue();
+				
+				//success related operations
+				handlePlaylistProgression();
+			}
+			
+			@Override
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
+				logger.warn("Fail to get transport info ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
 	@Override
-	public void updateVolume()
-	{
-		if (getRenderingControlService() == null)
-			return;
+	public Boolean updateVolume(final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
 
-		controlPoint.execute(new GetVolume(getRenderingControlService()) {
+		if (getRenderingControlService() == null)
+			return null;
+
+		Future f = controlPoint.execute(new GetVolume(getRenderingControlService()) {
 			@Override
-			public void received(ActionInvocation arg0, int arg1)
-			{
+			public void received(ActionInvocation arg0, int arg1){
 				logger.debug("Receive volume ! " + arg1);
 				rendererState.setVolume(arg1);
+				
+				result.setTrue();
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to get volume ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
-	public void updateMute()
-	{
-		if (getRenderingControlService() == null)
-			return;
+	public Boolean updateMute(final boolean sync){
+		final MutableBoolean result = new MutableBoolean(false);
 
-		controlPoint.execute(new GetMute(getRenderingControlService()) {
+		if (getRenderingControlService() == null)
+			return null;
+
+		Future f = controlPoint.execute(new GetMute(getRenderingControlService()) {
 			@Override
-			public void received(ActionInvocation arg0, boolean arg1)
-			{
+			public void received(ActionInvocation arg0, boolean arg1){
 				logger.debug("Receive mute status ! " + arg1);
 				rendererState.setMute(arg1);
+				
+				result.setTrue();
 			}
 
 			@Override
-			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2)
-			{
+			public void failure(ActionInvocation arg0, UpnpResponse arg1, String arg2){
 				logger.warn("Fail to get mute status ! " + arg2);
+				
+				result.setFalse();
 			}
 		});
+		
+		if (sync){
+    		syncWait(f);
+			return result.getValue();
+    	}
+    	
+    	return null;
 	}
 
 	@Override
-	public void updateFull()
+	public void updateFull(final boolean sync)
 	{
-		updateMediaInfo();
-		updatePositionInfo();
-		updateVolume();
-		updateMute();
-		updateTransportInfo();
+		updateMediaInfo(sync);
+		updatePositionInfo(sync);
+		updateVolume(sync);
+		updateMute(sync);
+		updateTransportInfo(sync);
 	}
 
 	@Override
@@ -763,18 +833,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 						count++;
 
-						updatePositionInfo();
+						updatePositionInfo(false);
 
 						if ((count % 3) == 0)
 						{
-							updateVolume();
-							updateMute();
-							updateTransportInfo();
+							updateVolume(false);
+							updateMute(false);
+							updateTransportInfo(false);
 						}
 
 						if ((count % 6) == 0)
 						{
-							updateMediaInfo();
+							updateMediaInfo(false);
 						}
 					}
 					Thread.sleep(1000);
@@ -787,16 +857,117 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 
 	@Override
-	public void updateStatus()
-	{
+	public Boolean updateStatus(final boolean sync){
 		// TODO Auto-generated method stub
-
+		return null;
 	}
 
 	@Override
-	public void updatePosition()
-	{
+	public Boolean updatePosition(final boolean sync){
 		// TODO Auto-generated method stub
-
+		return null;
 	}
+	
+	
+	
+	//----------------------------------EXPERIMENTS
+	
+	/*
+	 * XXXXXXXXXXXX
+	 * 
+	 * li faccio tutti sincroni i comandi da interfaccia? potrebbe essere un'idea
+	 */
+	
+	public synchronized void play(){
+		/**
+		 * se è già in play, riparte la stessa canzone (QUELLA PUNTATA DALLA PLAYLIST) da 0:00 (e risetta la playlistState a play? verificare se serve)
+		 * se è in stop, parte la canzone (QUELLA PUNTATA DALLA PLAYLIST)
+		 * 
+		 * in pratica è sempre un launchPlaylist()
+		 */
+		launchPlaylist();
+	}
+	
+	public synchronized void pause(){
+		commandToggle(true);
+	}
+	
+	public synchronized void stop(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		playlist.setState(IPlaylistState.State.STOP);
+		
+		commandStop(true);
+	}
+	
+	public synchronized void first(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		if (!playlist.hasPrevious())
+			return;
+		
+		RendererState.State state = rendererState.getState();
+		boolean wasPlaying = (state == RendererState.State.PLAY);
+		 
+		if (wasPlaying)
+			stop();
+		
+		playlist.first();
+
+		if (wasPlaying)
+			play();
+	}
+	
+	public synchronized void previous(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		if (!playlist.hasPrevious())
+			return;
+		
+		RendererState.State state = rendererState.getState();
+		boolean wasPlaying = (state == RendererState.State.PLAY);
+		 
+		if (wasPlaying)
+			stop();
+		
+		playlist.previous();
+
+		if (wasPlaying)
+			play();
+	}
+	
+	public synchronized void next(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		if (!playlist.hasNext())
+			return;
+		
+		RendererState.State state = rendererState.getState();
+		boolean wasPlaying = (state == RendererState.State.PLAY);
+		 
+		if (wasPlaying)
+			stop();
+		
+		playlist.next();
+
+		if (wasPlaying)
+			play();
+	}
+	
+	public synchronized void last(){
+		IPlaylistState playlist = rendererState.getPlaylist();
+		if (!playlist.hasNext())
+			return;
+		
+		RendererState.State state = rendererState.getState();
+		boolean wasPlaying = (state == RendererState.State.PLAY);
+		 
+		if (wasPlaying)
+			stop();
+		
+		playlist.last();
+
+		if (wasPlaying)
+			play();
+	}
+	
+	
+	
+	
 }
