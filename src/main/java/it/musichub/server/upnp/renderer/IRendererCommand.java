@@ -19,6 +19,7 @@
 
 package it.musichub.server.upnp.renderer;
 
+import it.musichub.server.upnp.model.IPlaylistState;
 import it.musichub.server.upnp.model.TrackMetadata;
 
 public interface IRendererCommand {
@@ -62,4 +63,14 @@ public interface IRendererCommand {
 	// / Update
 	public void updateFull(boolean sync);
 
+	
+	
+	
+	public void play();
+	public void pause();
+	public void stop();
+	public void first();
+	public void previous();
+	public void next();
+	public void last();
 }

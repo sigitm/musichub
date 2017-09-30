@@ -29,6 +29,7 @@ import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 import it.musichub.server.upnp.UpnpControllerService;
 import it.musichub.server.upnp.model.IPlaylistState.RepeatMode;
+import it.musichub.server.upnp.renderer.RendererCommand;
 
 public class ServiceFactory {
 
@@ -165,7 +166,7 @@ public class ServiceFactory {
 		
 		/*
 		 * shutdown hooks:
-		 * - "stop"/"exit" from console
+		 * - "exit" from console
 		 * - jvm interruption (es. ctrl-c)
 		 * - autosleep timer
 		 */
@@ -177,6 +178,9 @@ public class ServiceFactory {
 		Scanner sc = new Scanner(System.in);
 		while (true) {
 			String line = sc.nextLine();
+			if (line.isEmpty())
+				continue;
+			
 			String[] lineSplit = line.split(" ");
 			String command = lineSplit.length>0 ? lineSplit[0] : null;
 			String p1 = lineSplit.length>1 ? lineSplit[1] : null;
@@ -190,90 +194,95 @@ public class ServiceFactory {
 			 * list devices online
 			 * get selected device
 			 */
-			logger.debug("Parsing shell command: "+line);
-			if ("pause".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().commandPause(false);
-//			}else if ("play".equalsIgnoreCase(command)) {
-//				getUpnpControllerService().getRendererCommand().commandPlay();
-			}else if ("lp".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().launchPlaylist();
-			}else if ("shuffle".equalsIgnoreCase(command)) {
-				if (p1 == null)
-					logger.info("shuffle = "+getUpnpControllerService().getRendererState().getPlaylist().getShuffle());
-				else if ("on".equalsIgnoreCase(p1))
-					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(true);
-				else if ("off".equalsIgnoreCase(p1))
-					getUpnpControllerService().getRendererState().getPlaylist().setShuffle(false);
-			}else if ("repeat".equalsIgnoreCase(command)) {
-				if (p1 == null)
-					logger.info("repeat = "+getUpnpControllerService().getRendererState().getPlaylist().getRepeat());
-				else if ("all".equalsIgnoreCase(p1))
-					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.ALL);
-				else if ("off".equalsIgnoreCase(p1))
-					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.OFF);
-				else if ("track".equalsIgnoreCase(p1))
-					getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.TRACK);
-			}else if ("mute".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().toggleMute(false);
-			}else if ("vol".equalsIgnoreCase(command)) {
-				int vol = getUpnpControllerService().getRendererState().getVolume();
-				if (p1 == null)
-					logger.info("vol = "+getUpnpControllerService().getRendererState().getVolume());
-				else{
-					int bias = 5;
-					try {
-						bias = Integer.parseInt(p2);
-					} catch (Exception e) {
-						//nothing to do
+			logger.info("Parsing shell command ["+line+"]");
+			try{
+				if ("pause".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().pause();
+				}else if ("uti".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+					((RendererCommand)getUpnpControllerService().getRendererCommand()).updateTransportInfo(true);
+				}else if ("cplay".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+						getUpnpControllerService().getRendererCommand().commandPlay(true);
+				}else if ("seek".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+					if (p1 != null)
+						getUpnpControllerService().getRendererCommand().commandSeek(p1, true);
+				}else if ("play".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().play();
+				}else if ("stop".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().stop();
+				}else if ("first".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().first();
+				}else if ("previous".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().previous();
+				}else if ("next".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().next();
+				}else if ("last".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().last();
+				}else if ("playlist".equalsIgnoreCase(command)) {
+					logger.info("\n"+getUpnpControllerService().getRendererState().getPlaylist().prettyPrint());
+				}else if ("shuffle".equalsIgnoreCase(command)) {
+					if (p1 == null)
+						logger.info("shuffle = "+getUpnpControllerService().getRendererState().getPlaylist().getShuffle());
+					else if ("on".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererState().getPlaylist().setShuffle(true);
+					else if ("off".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererState().getPlaylist().setShuffle(false);
+				}else if ("repeat".equalsIgnoreCase(command)) {
+					if (p1 == null)
+						logger.info("repeat = "+getUpnpControllerService().getRendererState().getPlaylist().getRepeat());
+					else if ("all".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.ALL);
+					else if ("off".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.OFF);
+					else if ("track".equalsIgnoreCase(p1))
+						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.TRACK);
+				}else if ("mute".equalsIgnoreCase(command)) {
+					getUpnpControllerService().getRendererCommand().toggleMute(false);
+				}else if ("vol".equalsIgnoreCase(command)) {
+					int vol = getUpnpControllerService().getRendererState().getVolume();
+					if (p1 == null)
+						logger.info("Volume = "+getUpnpControllerService().getRendererState().getVolume());
+					else{
+						int bias = 5;
+						try {
+							bias = Integer.parseInt(p2);
+						} catch (Exception e) {
+							//nothing to do
+						}
+						if ("+".equalsIgnoreCase(p1))
+							getUpnpControllerService().getRendererCommand().setVolume(vol+bias, false);
+						else if ("-".equalsIgnoreCase(p1))
+							getUpnpControllerService().getRendererCommand().setVolume(vol-bias, false);
 					}
-					if ("+".equalsIgnoreCase(p1))
-						getUpnpControllerService().getRendererCommand().setVolume(vol+bias, false);
-					else if ("-".equalsIgnoreCase(p1))
-						getUpnpControllerService().getRendererCommand().setVolume(vol-bias, false);
+				}else if ("logger".equalsIgnoreCase(command)) {
+					if (p1 == null)
+						logger.info("logger level = "+LogManager.getRootLogger().getLevel());
+					else if ("OFF".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.OFF);
+					else if ("FATAL".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.FATAL);
+					else if ("ERROR".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.ERROR);
+					else if ("WARN".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.WARN);
+					else if ("INFO".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.INFO);
+					else if ("DEBUG".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.DEBUG);
+					else if ("TRACE".equalsIgnoreCase(p1))
+						LogManager.getRootLogger().setLevel(Level.TRACE);
+				}else if ("exit".equalsIgnoreCase(command)) {
+					logger.info("Terminating program by exit request... ");
+					sc.close();
+					shutdown();
+					break;
+				}else{
+					logger.warn("Unknown shell command ["+line+"]");
 				}
-			}else if ("stop".equalsIgnoreCase(command)) {
-				getUpnpControllerService().getRendererCommand().commandStop(false);
-			}else if ("logger".equalsIgnoreCase(command)) {
-				if (p1 == null)
-					logger.info("logger level = "+LogManager.getRootLogger().getLevel());
-				else if ("OFF".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.OFF);
-				else if ("FATAL".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.FATAL);
-				else if ("ERROR".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.ERROR);
-				else if ("WARN".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.WARN);
-				else if ("INFO".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.INFO);
-				else if ("DEBUG".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.DEBUG);
-				else if ("TRACE".equalsIgnoreCase(p1))
-					LogManager.getRootLogger().setLevel(Level.TRACE);
-			}else if ("exit".equalsIgnoreCase(command)) {
-				logger.info("Terminating program by exit request... ");
-				sc.close();
-				shutdown();
-				break;
-			}else{
-				logger.warn("Unknown shell command: "+line);
+				logger.info("Parsing of command ["+line+"] completed");
+			}catch (Exception e){
+				logger.warn("Exception thrown executing command ["+line+"]", e);
 			}
 		}
-	}
-	
-	private static boolean isInteger(String s) {
-		if (s == null)
-			return false;
-		
-	    try { 
-	        Integer.parseInt(s); 
-	    } catch(NumberFormatException e) { 
-	        return false; 
-	    } catch(NullPointerException e) {
-	        return false;
-	    }
-	    // only got here if we didn't return false
-	    return true;
 	}
 	
 	private UpnpControllerService getUpnpControllerService(){

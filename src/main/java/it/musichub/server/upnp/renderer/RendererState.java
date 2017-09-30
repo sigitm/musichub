@@ -72,8 +72,12 @@ public class RendererState implements IRendererState {
 	@Override
 	public void setState(State state)
 	{
-		if (this.state == state)
+		if (this.state == state){
+			logger.fatal("rendererState: confirming state "+state);
 			return;
+		}
+		
+		logger.fatal("rendererState: updating state to "+state);
 
 		if (state == State.STOP && (this.state == State.PLAY || this.state == State.PAUSE))
 		{
@@ -167,6 +171,7 @@ public class RendererState implements IRendererState {
 	public void setTransportInfo(TransportInfo transportInfo)
 	{
 		this.transportInfo = transportInfo;
+		logger.fatal("Setting transportInfo with state "+transportInfo.getCurrentTransportState());
 
 		if (transportInfo.getCurrentTransportState() == TransportState.PAUSED_PLAYBACK
 				|| transportInfo.getCurrentTransportState() == TransportState.PAUSED_RECORDING)

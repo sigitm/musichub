@@ -189,6 +189,14 @@ public class Song implements Serializable {
 		return String.format("%02d:%02d:%02d", length / 3600, (length % 3600) / 60, (length % 60));
 	}
 	
+	public String getLengthMmSs() {
+		return String.format("%02d:%02d", (length % 3600) / 60, (length % 60));
+	}
+	
+	public String getReadableLength() {
+		return (length / 3600 > 0) ? getLengthHhMmSs() : getLengthMmSs();
+	}
+	
 	public String getId(){
 		return Integer.toString(path.hashCode()); 
 	}

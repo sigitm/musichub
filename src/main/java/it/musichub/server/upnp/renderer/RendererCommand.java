@@ -45,6 +45,7 @@ import org.fourthline.cling.support.avtransport.callback.Stop;
 import org.fourthline.cling.support.model.MediaInfo;
 import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.TransportInfo;
+import org.fourthline.cling.support.model.TransportState;
 import org.fourthline.cling.support.renderingcontrol.callback.GetMute;
 import org.fourthline.cling.support.renderingcontrol.callback.GetVolume;
 import org.fourthline.cling.support.renderingcontrol.callback.SetMute;
@@ -146,7 +147,12 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
 	private static void syncWait(Future f){
 		try {
+			String method = Thread.currentThread().getStackTrace()[2].getMethodName();
+    		logger.debug("syncWait for method "+method+" STARTS");
+    		long startTime = System.currentTimeMillis();
 			f.get();
+    		long endTime = System.currentTimeMillis();
+			logger.debug("syncWait for method "+method+" ENDS after " + (endTime - startTime) + " milliseconds");
 		} catch (InterruptedException | ExecutionException e) {
 			logger.warn("Error waiting for async operation to end", e);
 		}
@@ -218,6 +224,12 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		});
     	
     	if (sync){
+//    		if (result.getValue()){
+//				//success related operations
+//				updateTransportInfo(sync);
+//    		}
+    		
+    		
     		syncWait(f);
 			return result.getValue();
     	}
@@ -533,7 +545,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	 */
 	
 		IPlaylistState playlist = rendererState.getPlaylist();
-		playlist.setState(IPlaylistState.State.LAUNCHING);
+//		playlist.setState(IPlaylistState.State.LAUNCHING);
+		//XXX TODO commentato il LAUNCHING... VERIFICARE SE SI PUO' CASSARE LO STATO LAUNCHING
 		
 		// Stopping potential playback before setting URI
 		commandStop(true);
@@ -552,9 +565,6 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	}
 	
 	private void launchSong(final Song song){
-		IPlaylistState playlist = rendererState.getPlaylist();
-		playlist.setState(IPlaylistState.State.LAUNCHING);///TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX l'ho già messo di là
-		
 		MediaServer mediaServer = getUpnpControllerService().getMediaServer();
 		TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song);
 		/*Method callbackMethod = null;
@@ -586,16 +596,22 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	
 	private synchronized void handlePlaylistProgression(){
 		IPlaylistState playlist = rendererState.getPlaylist();
-		if (playlist != null){
-			if (rendererState.getState() == State.STOP && playlist.getState() == IPlaylistState.State.PLAY){
+		if (playlist != null && rendererState.getTransportInfo() != null){
+			/**
+			 * RULES:
+			 * - transportState == STOPPED (per escludere i casi di TRANSITIONING in cui non è ancora PLAY)
+			 * - rendererState != PAUSE (per escludere i casi in cui transportState == STOPPED ma in realtà siamo in pausa... immagino dipenda dall'implementazione del renderer)
+			 * - playlistState == PLAY (sono in fase di riproduzione della playlist)
+			 */
+			if (rendererState.getTransportInfo().getCurrentTransportState() == TransportState.STOPPED && rendererState.getState() != State.PAUSE && playlist.getState() == IPlaylistState.State.PLAY){
 				//the previous song is over
 				if (playlist.hasNext()){
 					//launching next song....
 					Song song = playlist.next();
-					logger.debug("handlePlaylist: launching next song: "+song);
+					logger.debug("handlePlaylistProgression: launching next song: "+song);
 					launchSong(song);
 				}else{
-					logger.debug("handlePlaylist: playlist ended");
+					logger.debug("handlePlaylistProgression: playlist ended");
 					playlist.setState(IPlaylistState.State.STOP);
 				}
 			}
@@ -682,9 +698,6 @@ public class RendererCommand implements Runnable, IRendererCommand {
 				rendererState.setTransportInfo(arg1);
 				
 				result.setTrue();
-				
-				//success related operations
-				handlePlaylistProgression();
 			}
 			
 			@Override
@@ -840,6 +853,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 							updateVolume(false);
 							updateMute(false);
 							updateTransportInfo(false);
+							handlePlaylistProgression();
 						}
 
 						if ((count % 6) == 0)
@@ -877,7 +891,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 	 * 
 	 * li faccio tutti sincroni i comandi da interfaccia? potrebbe essere un'idea
 	 */
-	
+	@Override
 	public synchronized void play(){
 		/**
 		 * se è già in play, riparte la stessa canzone (QUELLA PUNTATA DALLA PLAYLIST) da 0:00 (e risetta la playlistState a play? verificare se serve)
@@ -888,10 +902,12 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		launchPlaylist();
 	}
 	
+	@Override
 	public synchronized void pause(){
 		commandToggle(true);
 	}
 	
+	@Override
 	public synchronized void stop(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		playlist.setState(IPlaylistState.State.STOP);
@@ -899,6 +915,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		commandStop(true);
 	}
 	
+	@Override
 	public synchronized void first(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (!playlist.hasPrevious())
@@ -916,6 +933,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			play();
 	}
 	
+	@Override
 	public synchronized void previous(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (!playlist.hasPrevious())
@@ -933,6 +951,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			play();
 	}
 	
+	@Override
 	public synchronized void next(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (!playlist.hasNext())
@@ -950,6 +969,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 			play();
 	}
 	
+	@Override
 	public synchronized void last(){
 		IPlaylistState playlist = rendererState.getPlaylist();
 		if (!playlist.hasNext())
@@ -966,6 +986,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		if (wasPlaying)
 			play();
 	}
+	
 	
 	
 	

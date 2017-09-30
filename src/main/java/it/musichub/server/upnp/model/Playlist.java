@@ -22,4 +22,17 @@ public class Playlist extends ArrayList<Song> {
 		return "Playlist [name=" + name + ", songs=" + super.toString() + "]";
 	}
 	
+	public String prettyPrint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Playlist ["+name+"]\n");
+		for (int i=0; i<size(); i++){
+			sb.append(i+1+". "+getSongTitle(get(i))+"\n");
+		}
+		return sb.toString();
+	}
+	
+	protected static String getSongTitle(Song song){
+		return song.getArtist() + " - " + song.getTitle() + " ("+song.getReadableLength()+")";
+	}
+	
 }

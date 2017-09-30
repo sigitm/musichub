@@ -38,14 +38,7 @@ public interface IPlaylistState {
 	Song first();
 	Song last();
 	Song selectPos(int pos);
-	
-	
-	//TODO XXX XXXXXXXXXX DECIDERE SE TENERE QUI... sarebbero i comandi da interfaccia (con regole diverse!)
-//	Song goToFirst();
-//	Song goToPrevious();
-//	Song goToNext();
-//	Song goToLast();
-	
+
 	//options
 	public enum RepeatMode {OFF, TRACK, ALL}
 	boolean getShuffle();
@@ -58,4 +51,6 @@ public interface IPlaylistState {
 	//savePlaylist(String name)
 	//exportPlaylist()  --esporta la playlist in un m3u8
 	//importPlaylist()  --importa la playlist da un m3u8
+	
+	public String prettyPrint();
 }

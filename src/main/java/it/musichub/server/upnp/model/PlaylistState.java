@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.renderer.IRendererState.State;
@@ -264,7 +266,9 @@ public class PlaylistState implements IPlaylistState {
 		}
 		
 		currentPointer = 0;
-
+//TODO NEW
+//- decidere se first/last devono ragionare sempre sulla lista shuffled come previous/next(NOTA NON CI SONO SU WINAMP)
+//- trovare un modo per rifare lo shuffle ad ogni scorrimento di lista con shuffle+repeatALL (VERIFICARE SU WINAMP SE E' COSI' ANCHE SU WINAMP)
 		return getCurrentSong();
 	}
 	
@@ -337,6 +341,18 @@ public class PlaylistState implements IPlaylistState {
 				+ ", repeat=" + repeat + "]";
 	}
 	
-	
+	public String prettyPrint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Playlist ["+songs.getName()+"]\n");
+		for (int i=0; i<songs.size(); i++){
+			Song song = songs.get(i);
+			String sel = StringUtils.EMPTY;
+			if (song.equals(getCurrentSong()))
+				sel = " (SELECTED)";
+			sb.append(i+1+". "+Playlist.getSongTitle(song)+sel+"\n");
+		}
+		sb.append("SHUFFLE="+shuffle+", REPEAT="+repeat);
+		return sb.toString();
+	}
 	
 }
