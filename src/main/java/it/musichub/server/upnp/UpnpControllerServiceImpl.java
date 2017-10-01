@@ -191,76 +191,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
         IPlaylistState playlist = rendererState.getPlaylist();
         playlist.addFolder(root, false);
         
-//        rendererCommand.launchPlaylist();
-        //e una nextSong?? devo implementare qui tutti i controlli del player!!!!
-        
-        
-        
-        
-////        MusicTrack mt = UpnpFactory.songToMusicTrack(mediaServer, song0);
-//        TrackMetadata trackMetadata = UpnpFactory.songToTrackMetadata(mediaServer, song0);
-//        logger.fatal("Track metadata xml: "+trackMetadata.getXML());
-//        
-////        Res res = new Res(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"), 5835548L, "0:04:01.000", 24000L, "http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3");
-////        TrackMetadata trackMetadataFAKE = new TrackMetadata("0$=Artist$1314$items$*i3586", "0$=Artist$1314$items", "Summer of '69", "Bryan Adams", "Rock", "", res, "object.item.audioItem.musicTrack");
-////        logger.fatal("FAKE Track metadata xml: "+trackMetadataFAKE.getXML());
-////        
-////        - MediaInfo/TransportInfo mettere toString come PositionInfo (fare un toString da fuori)
-////        - gestione servizi con gli stati.. gestire casi di interruzione stato (es. porta http già occupata; cartella N:\ non accessibile)
-//        logger.fatal("Protocol info: "+trackMetadata.res.getProtocolInfo().toString());
-////        trackMetadata.res.setProtocolInfo(new ProtocolInfo("http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000"));
-////        logger.fatal("Protocol info tarocco: "+trackMetadata.res.getProtocolInfo().toString());
-//        
-//        rendererCommand.launchItem2(trackMetadata);
-//        try {
-//			TimeUnit.SECONDS.sleep(6);
-//		} catch (Exception e) {}
-//        
-//        rendererCommand.setMute(true);
-//        try {
-//			TimeUnit.SECONDS.sleep(8);
-//		} catch (Exception e) {}
-//        
-//        rendererCommand.setMute(false);
-//        try {
-//			TimeUnit.SECONDS.sleep(8);
-//		} catch (Exception e) {}
-//        
-//        rendererCommand.commandPause();
-//        try {
-//			TimeUnit.SECONDS.sleep(8);
-//		} catch (Exception e) {}
-//        
-//        if (rendererState.getState() != State.PLAY){
-//	        rendererCommand.commandPlay();
-//	        try {
-//				TimeUnit.SECONDS.sleep(8);
-//			} catch (Exception e) {}
-//        }
-//        
-//        rendererCommand.commandStop();
-		
-        
-        /////TODO scoprire perchè la pausa va con BubbleUPNP e non queste canzoni
-        //forse un problema del webServer? probabile... tentare il fakeTrackMetadata
-        
-        
-        
-//        <?xml version="1.0" encoding="UTF-8"?>
-//        <DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dlna="urn:schemas-dlna-org:metadata-1-0/" xmlns:pv="http://www.pv.com/pvns/" xmlns:sec="http://www.sec.co.kr/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/">
-//           <item id="0$=Artist$1314$items$*i3586" parentID="0$=Artist$1314$items" restricted="1">
-//              <upnp:class>object.item.audioItem.musicTrack</upnp:class>
-//              <dc:title>Summer of '69</dc:title>
-//              <dc:creator>Bryan Adams</dc:creator>
-//              <upnp:artist>Bryan Adams</upnp:artist>
-//              <upnp:albumArtURI>http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3/$!picture-1361-31291.jpg</upnp:albumArtURI>
-//              <upnp:genre>Rock</upnp:genre>
-//              <dc:date>1997-01-01</dc:date>
-//              <upnp:album>MTV Unplugged</upnp:album>
-//              <upnp:originalTrackNumber>1</upnp:originalTrackNumber>
-//              <res protocolInfo="http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_FLAGS=01700000000000000000000000000000" bitrate="24000" sampleFrequency="44100" nrAudioChannels="2" size="5835548" duration="0:04:01.000">http://192.168.1.30:9790/minimserver/*/music/MP3s/Pop/Bryan*20Adams*20-*20Summer*20of*20*2769.mp3</res>
-//           </item>
-//        </DIDL-Lite>
+
         
 	}
 

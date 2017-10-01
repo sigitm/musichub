@@ -217,7 +217,7 @@ public class ServiceFactory {
 					getUpnpControllerService().getRendererCommand().next();
 				}else if ("last".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().last();
-				}else if ("playlist".equalsIgnoreCase(command)) {
+				}else if ("playlist".equalsIgnoreCase(command) || "pl".equalsIgnoreCase(command)) {
 					logger.info("\n"+getUpnpControllerService().getRendererState().getPlaylist().prettyPrint());
 				}else if ("shuffle".equalsIgnoreCase(command)) {
 					if (p1 == null)

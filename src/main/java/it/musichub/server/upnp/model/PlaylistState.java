@@ -74,6 +74,15 @@ public class PlaylistState implements IPlaylistState {
 		return songs.get(songPointers.get(pointer));
 	}
 	
+//	private synchronized int getPointerForSong(Song song){
+//		int pos = songs.indexOf(song); 
+//		
+//		if (pos == -1)
+//			return -1;
+//		
+//		return songPointers.indexOf(pos);
+//	}
+	
 	@Override
 	public List<Song> getSongs(){
 		return songs;
@@ -196,9 +205,11 @@ public class PlaylistState implements IPlaylistState {
 				if (currentPointer < songPointers.size()-1){ //pointer is not in last position
 					currentPointer++;
 				}else{ //pointer is in last position
-					if (repeat == RepeatMode.ALL)
+					if (repeat == RepeatMode.ALL){
 						currentPointer = 0;
-					else
+						if (shuffle)
+							shuffle();
+					}else
 						currentPointer = null;
 				}
 			}
@@ -265,11 +276,7 @@ public class PlaylistState implements IPlaylistState {
 			return null;
 		}
 		
-		currentPointer = 0;
-//TODO NEW
-//- decidere se first/last devono ragionare sempre sulla lista shuffled come previous/next(NOTA NON CI SONO SU WINAMP)
-//- trovare un modo per rifare lo shuffle ad ogni scorrimento di lista con shuffle+repeatALL (VERIFICARE SU WINAMP SE E' COSI' ANCHE SU WINAMP)
-		return getCurrentSong();
+		return selectPos(0);
 	}
 	
 	@Override
@@ -279,9 +286,7 @@ public class PlaylistState implements IPlaylistState {
 			return null;
 		}
 		
-		currentPointer = songs.size()-1;
-
-		return getCurrentSong();
+		return selectPos(songs.size()-1);
 	}
 	
 	@Override
@@ -320,9 +325,14 @@ public class PlaylistState implements IPlaylistState {
 	
 	@Override
 	public synchronized void shuffle() {
-		Integer songPointer = songPointers.get(currentPointer);
+		Integer songPointer = null;
+		if (currentPointer != null)
+			songPointer = songPointers.get(currentPointer);
+		
 		Collections.shuffle(songPointers);
-		currentPointer = songPointers.indexOf(songPointer);
+		
+		if (songPointer != null) //restoring current song pointer
+			currentPointer = songPointers.indexOf(songPointer);
 	}
 
 	@Override
