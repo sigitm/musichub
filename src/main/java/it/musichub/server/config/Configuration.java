@@ -10,6 +10,11 @@ public class Configuration implements Serializable {
 	 * GENERIC
 	 */
 	/**
+	 * Specifies the auto shutdown time (optional)
+	 */
+	private Integer autoSleepTime = 600;
+
+	/**
 	 * Activates the verbose mode.
 	 */
 	private static boolean verboseMode = false;	
@@ -31,7 +36,7 @@ public class Configuration implements Serializable {
 
 	
 	/*
-	 * upnphttpserver
+	 * upnpcontroller
 	 */
 	@Required
 	private Integer mediaHttpPort = 9000;
@@ -39,6 +44,14 @@ public class Configuration implements Serializable {
 	/*
 	 * GETTERS & SETTERS
 	 */
+	public Integer getAutoSleepTime() {
+		return autoSleepTime;
+	}
+
+	public void setAutoSleepTime(Integer autoSleepTime) {
+		this.autoSleepTime = autoSleepTime;
+	}
+	
 	public static boolean isVerboseMode() {
 		return verboseMode;
 	}

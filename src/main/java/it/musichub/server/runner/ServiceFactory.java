@@ -1,7 +1,5 @@
 package it.musichub.server.runner;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,11 +18,17 @@ import it.musichub.server.config.ConfigUtils;
 import it.musichub.server.config.ConfigUtils.ValidateResult;
 import it.musichub.server.config.Configuration;
 import it.musichub.server.config.Constants;
+import it.musichub.server.ex.MusicHubException;
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 import it.musichub.server.persistence.PersistenceEngine;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
+import it.musichub.server.runner.IMusicHubService.ServiceState;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 import it.musichub.server.upnp.UpnpControllerService;
@@ -91,16 +95,17 @@ public class ServiceFactory {
 			Class<?> svcClass = svcDefinition.getServiceClass();
 			IMusicHubService svcInstance = null;
 			try {
-				List<Class<?>> argClasses = new ArrayList<>();
-				List<Object> argValues = new ArrayList<>();
-				for (String name : svcDefinition.getArgs().keySet()){
-					Class<?> clazz = svcDefinition.getArgs().get(name);
-					argClasses.add(clazz);
-					argValues.add(params.get(name));
-				}
-				Constructor constructor = svcClass.getDeclaredConstructor(argClasses.toArray(new Class<?>[]{}));
-				svcInstance = (IMusicHubService) constructor.newInstance(argValues.toArray(new Object[]{}));
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				svcInstance = (IMusicHubService) svcClass.newInstance();
+//				List<Class<?>> argClasses = new ArrayList<>();
+//				List<Object> argValues = new ArrayList<>();
+//				for (String name : svcDefinition.getArgs().keySet()){
+//					Class<?> clazz = svcDefinition.getArgs().get(name);
+//					argClasses.add(clazz);
+//					argValues.add(params.get(name));
+//				}
+//				Constructor constructor = svcClass.getDeclaredConstructor(argClasses.toArray(new Class<?>[]{}));
+//				svcInstance = (IMusicHubService) constructor.newInstance(argValues.toArray(new Object[]{}));
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException /*| InvocationTargetException | NoSuchMethodException*/ | SecurityException e) {
 				logger.error("Error generating service "+service.name(), e);
 				return;
 			}
@@ -118,19 +123,22 @@ public class ServiceFactory {
 		this.config = config;
 	}
 	
-	public synchronized void init(){
-		//using persistence service in unmanaged mode
-		configPers.init();
-		configPers.start();
-		
+	public void init(){
 		if (config == null){
 			try {
+				//using persistence service in unmanaged mode
+				configPers.init();
+				configPers.start();
+				
 				config = configPers.loadFromDisk(Configuration.class, Constants.CONFIG_FILE_NAME);
 			} catch(FileNotFoundException e) {
 				logger.warn("Config file not found. May be first launch.", e);
 			} catch(LoadException e) {
-				logger.error("Error loading config file", e);
+				logger.error("Error loading config file from disk", e);
+			} catch (MusicHubException e) {
+				logger.warn("Error starting persistence service in unmanaged mode", e);
 			}
+			
 			if (config == null)
 				config = new Configuration();
 		}
@@ -149,7 +157,7 @@ public class ServiceFactory {
 		hooks.clear();
 	}
 	
-	public synchronized void start(){
+	public void start(){
 		//check configuration
 		ValidateResult configValidation = ConfigUtils.validate(config);
 		if (!configValidation.isOk()){
@@ -160,9 +168,13 @@ public class ServiceFactory {
 		}
 		
 		//starting services
-		initServices();
-		startServices();
-		logger.info("MusicHub Server 0.1 started.");
+		try {
+			initServices();
+			startServices();
+		} catch (MusicHubException e) {
+			throw new RuntimeException("MusicHub Server could not start.", e);
+		}
+		logger.info("MusicHub Server "+Constants.VERSION+" started.");
 		
 		/*
 		 * shutdown hooks:
@@ -300,7 +312,7 @@ public class ServiceFactory {
 		
 		@Override
 		public void enable() {
-			final Integer time = Constants.AUTOSLEEP_TIME;
+			final Integer time = getConfiguration().getAutoSleepTime();
 			if (time != null){
 				timer = new Timer();
 		        timer.schedule (new TimerTask() {
@@ -341,73 +353,96 @@ public class ServiceFactory {
 		}
 	}
 	
-	public synchronized void shutdown(){
+	public void shutdown(){
 		//disable hooks
 		disableHooks();
 		
-		stopServices();
-		destroyServices();
+		//stopping services
+		try {
+			stopServices();
+			destroyServices();
+		} catch (MusicHubException e) {
+			logger.error("Error shutting down services", e);
+//		    return;
+		}
 		
 		try {
 			configPers.saveToDisk(config, Constants.CONFIG_FILE_NAME);
+			configPers.stop();
+			configPers.destroy();
 		} catch (SaveException e) {
-			logger.error("Error saving config file", e);
-		    return;
+			logger.error("Error saving config file to disk", e);
+//		    return;
+		} catch (MusicHubException e) {
+			logger.error("Error shutting down persistence service in unmanaged mode", e);
+//		    return;
 		}
-		configPers.stop();
-		configPers.destroy();
+		
+		logger.info("MusicHub Server terminated.");
 		
 		System.exit(0);
 	}
 	
-	private void initServices(){
-		generateServices();
-		
+	private void initServices() throws ServiceInitException {
 		logger.debug("Initializing services...");
+		generateServices();
+	
 		for (Service service : getServiceList(false)){
 			logger.debug("Initializing service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			IMusicHubService svc = serviceDefinition.getInstance();
+			if (svc.getState() != null)
+				throw new ServiceInitException("Invalid service state "+svc.getState());
 			svc.init();
+			svc.setState(ServiceState.init);
 			logger.debug("Service "+service.name()+" initialized");
 		}
 
 		logger.debug("Services initialized");
 	}
 
-	private void startServices(){
+	private void startServices() throws ServiceStartException {
 		logger.debug("Starting services...");
 		for (Service service : getServiceList(false)){
 			logger.debug("Starting service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			IMusicHubService svc = serviceDefinition.getInstance();
+			if (svc.getState() != ServiceState.init)
+				throw new ServiceStartException("Invalid service state "+svc.getState());
 			svc.start();
+			svc.setState(ServiceState.start);
 			logger.debug("Service "+service.name()+" started");
 		}
 
 		logger.debug("Services started");
 	}
 	
-	private void stopServices(){
+	private void stopServices() throws ServiceStopException {
 		logger.debug("Stopping services...");
 		for (Service service : getServiceList(true)){
 			logger.debug("Stopping service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			IMusicHubService svc = serviceDefinition.getInstance();
+			if (svc.getState() != ServiceState.start)
+				throw new ServiceStopException("Invalid service state "+svc.getState());
 			svc.stop();
+			svc.setState(ServiceState.stop);
 			logger.debug("Service "+service.name()+" stopped");
 		}
 
 		logger.debug("Services stopped");
 	}
 	
-	private void destroyServices(){
+	private void destroyServices() throws ServiceDestroyException {
 		logger.debug("Destroying services...");
 		for (Service service : getServiceList(true)){
 			logger.debug("Destroying service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
 			IMusicHubService svc = serviceDefinition.getInstance();
+			if (svc.getState() != ServiceState.stop)
+				throw new ServiceDestroyException("Invalid service state "+svc.getState());
 			svc.destroy();
+			svc.setState(ServiceState.destroy);
 			logger.debug("Service "+service.name()+" destroyed");
 		}
 

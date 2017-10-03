@@ -1,13 +1,23 @@
 package it.musichub.server.runner;
 
-public interface IMusicHubService {
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 
-	public void init();
+public interface IMusicHubService {
 	
-	public void start();
+	public enum ServiceState {init, start, stop, destroy}
 	
-	public void stop();
+	public ServiceState getState();
+	public void setState(ServiceState state);
+
+	public void init() throws ServiceInitException;
 	
-	public void destroy();
+	public void start() throws ServiceStartException;
+	
+	public void stop() throws ServiceStopException;
+	
+	public void destroy() throws ServiceDestroyException;
 	
 }

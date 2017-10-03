@@ -19,6 +19,10 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.UnsupportedTagException;
 
 import it.musichub.server.config.Constants;
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;
 import it.musichub.server.library.model.Song;
@@ -72,20 +76,16 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	}
 
 	@Override
-	public void init(){
+	public void init() throws ServiceInitException {
 		if (startingDir == null)
-			throw new IllegalArgumentException("startingDir cannot be null");
+			throw new ServiceInitException("startingDir cannot be null");
 		
 		//init parsing
 		Path startingDirPath = Paths.get(startingDir);
-		try {
-			boolean notExists = Files.notExists(startingDirPath);
-			if (notExists)
-				throw new IllegalArgumentException();
-		}catch(Exception e){
-			logger.error("Error opening directory "+startingDir, e);
-			return;
-		}
+		boolean notExists = Files.notExists(startingDirPath);
+		if (notExists)
+			throw new ServiceInitException("Error opening directory "+startingDir);
+		
 		//normalizzo il percorso
 		startingDir = Paths.get(startingDirPath.toUri()).normalize().toString();
 		
@@ -97,7 +97,7 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	}
 	
 	@Override
-	public void start(){
+	public void start() throws ServiceStartException {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		
@@ -137,7 +137,7 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	}
 	
 	@Override
-	public void stop(){
+	public void stop() throws ServiceStopException {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		
@@ -147,7 +147,7 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	}
 	
 	@Override
-	public void destroy(){
+	public void destroy() throws ServiceDestroyException {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		

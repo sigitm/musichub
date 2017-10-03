@@ -18,6 +18,10 @@ import org.fourthline.cling.registry.RegistryListener;
 
 import fi.iki.elonen.NanoHTTPD;
 import it.musichub.server.config.Constants;
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.persistence.PersistenceService;
@@ -34,7 +38,6 @@ import it.musichub.server.upnp.model.DeviceFactory;
 import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
 import it.musichub.server.upnp.model.IPlaylistState;
-import it.musichub.server.upnp.model.TrackMetadata;
 import it.musichub.server.upnp.model.UpnpFactory;
 import it.musichub.server.upnp.renderer.IRendererCommand;
 import it.musichub.server.upnp.renderer.IRendererState;
@@ -118,7 +121,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	}
 	
 	@Override
-	public void init() {
+	public void init() throws ServiceInitException {
 		//init registry
 		loadFromDisk();
 		if (deviceRegistry == null)
@@ -138,19 +141,16 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	}
 
 	@Override
-	public void start() {
-		// Send a search message to all devices and services, they should
-		// respond soon
+	public void start() throws ServiceStartException {
+		// Send a search message to all devices and services, they should respond soon
 //		for (UDADeviceType udaType : getDeviceTypes())
 			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(Constants.UPNP_DEVICE_TYPE)));
 			
 		//init http server
         try {
         	mediaServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-        } catch (IOException ioe) {
-            logger.error("Couldn't start server",ioe);
-//            System.exit(-1);
-            return;
+        } catch (IOException e) {
+   			throw new ServiceStartException("Couldn't start media server", e);
         }
 
         
@@ -196,7 +196,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	}
 
 	@Override
-	public void stop() {
+	public void stop() throws ServiceStopException {
 		mediaServer.stop();
 		
 		upnpService.shutdown();
@@ -205,7 +205,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	}
 
 	@Override
-	public void destroy() {
+	public void destroy() throws ServiceDestroyException {
 		mediaServer = null;
 		
 		upnpService = null;

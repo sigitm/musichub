@@ -11,6 +11,10 @@ import com.thoughtworks.xstream.XStream;
 
 import it.musichub.server.config.Configuration;
 import it.musichub.server.config.Constants;
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.persistence.ex.FileCreationException;
@@ -40,7 +44,7 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 	}
 	
 	@Override
-	public void init(){
+	public void init() throws ServiceInitException {
 		//init xstream
 		xstream = new XStream();
 		XStream.setupDefaultSecurity(xstream);
@@ -59,18 +63,18 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 	}
 	
 	@Override
-	public void start(){
+	public void start() throws ServiceStartException {
 	}
 	
 	@Override
-	public void stop(){
+	public void stop() throws ServiceStopException {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 
 	}
 	
 	@Override
-	public void destroy(){
+	public void destroy() throws ServiceDestroyException {
 		if (!init)
 			throw new IllegalStateException("init phase not executed");
 		

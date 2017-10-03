@@ -7,8 +7,8 @@ public class Constants implements Serializable {
 	/*
 	 * GENERIC
 	 */
+	public static String VERSION = "0.1";
 	public static boolean verbose = false;
-	public static Integer AUTOSLEEP_TIME = 600; //TOO decidere se metterlo nella config
 	public static final String CONFIG_FILE_NAME = "config.xml";
 	
 	/*

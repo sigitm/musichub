@@ -110,4 +110,6 @@ GENA LastChange subscription: potrei intercettare gli STOP che non danno risulta
 
 TODO: rivedere la ServiceFactory per autospegnersi in caso di eccezioni durante init/start
 es. N:\ non accessibile, oppure porta del mediaserver già occupata da altra istanza
+-----> qlcs fatto, ma decidere come fare per i controlli init!!! checkState? li tengo o li tolgo?
+ - testare nel caso della porta occupata perchè non so se va.... non sembra interrompersi
 

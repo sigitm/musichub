@@ -11,6 +11,10 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.MapContext;
 
+import it.musichub.server.ex.ServiceDestroyException;
+import it.musichub.server.ex.ServiceInitException;
+import it.musichub.server.ex.ServiceStartException;
+import it.musichub.server.ex.ServiceStopException;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.library.utils.SmartBeanComparator;
@@ -39,7 +43,7 @@ public class SongsSearch extends MusicHubServiceImpl implements SearchService {
 	}
 
 	@Override
-	public void init(){
+	public void init() throws ServiceInitException {
 	    // Assuming we have a JexlEngine instance initialized in our class named 'jexl':
 	    // Create an expression object for our calculation
 		
@@ -47,18 +51,18 @@ public class SongsSearch extends MusicHubServiceImpl implements SearchService {
 	}
 	
 	@Override
-	public void start() {
+	public void start() throws ServiceStartException {
 		// TODO Auto-generated method stub
 	}
 	
 	@Override
-	public void stop() {
+	public void stop() throws ServiceStopException {
 		// TODO Auto-generated method stub
 	}
 	
 	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
+	public void destroy() throws ServiceDestroyException {
+		jexl = null;
 	}
 	
 	@Override
