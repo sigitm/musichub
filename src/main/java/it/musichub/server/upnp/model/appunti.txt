@@ -113,3 +113,12 @@ es. N:\ non accessibile, oppure porta del mediaserver già occupata da altra ist
 -----> qlcs fatto, ma decidere come fare per i controlli init!!! checkState? li tengo o li tolgo?
  - testare nel caso della porta occupata perchè non so se va.... non sembra interrompersi
 
+
+TODO: vedere se è rispettato il concetto di "Waiting for previous renderer", ovvero all'avvio cerco il renderer precedente e lo autoseleziono come selectedDevice
+
+TODO: supporto per il play diretto da esterno:
+ci vogliono dei test nel musichub.alexa:
+- test connessione al ws rest (da fare appena attivato)
+- test connessione al media server (per il play diretto su echo)
+
+TODO: fare casi d'uso scritti con attori ecc..
