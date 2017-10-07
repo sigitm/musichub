@@ -1,11 +1,10 @@
 package it.musichub.server.upnp.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
-import it.musichub.server.upnp.UpnpControllerServiceImpl;
 
 public class DeviceRegistry extends HashMap<String, Device> {
 
@@ -48,7 +47,7 @@ public class DeviceRegistry extends HashMap<String, Device> {
 	}
 	
 	public boolean isDeviceSelected(Device device){
-		if (device == null || device.getUdn() == null || get(device) == null)
+		if (device == null || device.getUdn() == null || get(device.getUdn()) == null)
 			throw new IllegalArgumentException("Invalid device "+device);
 		
 		if (!isDeviceSelected())
@@ -84,6 +83,27 @@ public class DeviceRegistry extends HashMap<String, Device> {
 			DeviceFactory.mergeFromDevice(oldDevice, device);
 		}
 		return this.get(key);
+	}
+	
+	public String prettyPrint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Device Registry\n");
+		Iterator<String> ite = keySet().iterator();
+		int i = 0;
+		while (ite.hasNext()) {
+			i++;
+			String key = ite.next();
+			Device device = get(key);
+			String tags = StringUtils.EMPTY;
+			if (isDeviceSelected(device))
+				tags += " (SELECTED)";
+			if (device.isOnline())
+				tags += " (ONLINE)";
+			
+			sb.append(i+". "+key+" - "+device.prettyPrint()+" "+tags+"\n");
+		}
+		
+		return sb.toString();
 	}
 	
 }

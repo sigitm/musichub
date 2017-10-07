@@ -112,4 +112,8 @@ public class Device implements Serializable {
 				+ friendlyName + ", manifacturer=" + manifacturer + ", modelName=" + modelName + ", online=" + online
 				+ ", lastSeenOnline=" + lastSeenOnline + ", lastUpdate=" + lastUpdate + "]";
 	}
+	
+	public String prettyPrint() {
+		return customName + " - friendlyName=" + friendlyName + ", manifacturer=" + manifacturer + ", modelName=" + modelName + ", lastSeenOnline=" + lastSeenOnline + ", lastUpdate=" + lastUpdate + "]";
+	}
 }

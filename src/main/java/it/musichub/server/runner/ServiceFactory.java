@@ -172,7 +172,8 @@ public class ServiceFactory {
 			initServices();
 			startServices();
 		} catch (MusicHubException e) {
-			throw new RuntimeException("MusicHub Server could not start.", e);
+			logger.fatal("MusicHub Server could not start.", e);
+			System.exit(1);
 		}
 		logger.info("MusicHub Server "+Constants.VERSION+" started.");
 		
@@ -197,6 +198,8 @@ public class ServiceFactory {
 			String command = lineSplit.length>0 ? lineSplit[0] : null;
 			String p1 = lineSplit.length>1 ? lineSplit[1] : null;
 			String p2 = lineSplit.length>2 ? lineSplit[2] : null;
+			String p3 = lineSplit.length>3 ? lineSplit[3] : null;
+			String p4 = lineSplit.length>4 ? lineSplit[4] : null;
 			
 			/*
 			 * potrei cambiare da console il logging level!!
@@ -207,65 +210,141 @@ public class ServiceFactory {
 			 * get selected device
 			 */
 			logger.info("Parsing shell command ["+line+"]");
+			boolean parsingOk = false;
 			try{
 				if ("pause".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().pause();
+					parsingOk = true;
 				}else if ("uti".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
 					((RendererCommand)getUpnpControllerService().getRendererCommand()).updateTransportInfo(true);
+					parsingOk = true;
+				}else if ("upi".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+					((RendererCommand)getUpnpControllerService().getRendererCommand()).updatePositionInfo(true);
+					parsingOk = true;
+				}else if ("uv".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+					((RendererCommand)getUpnpControllerService().getRendererCommand()).updateVolume(true);
+					parsingOk = true;
+				}else if ("um".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
+					((RendererCommand)getUpnpControllerService().getRendererCommand()).updateMute(true);
+					parsingOk = true;
 				}else if ("cplay".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
-						getUpnpControllerService().getRendererCommand().commandPlay(true);
+					getUpnpControllerService().getRendererCommand().commandPlay(true);
+					parsingOk = true;
 				}else if ("seek".equalsIgnoreCase(command)) { //XXXXXX PROVVISORIO
-					if (p1 != null)
+					if (p1 != null){
 						getUpnpControllerService().getRendererCommand().commandSeek(p1, true);
+						parsingOk = true;
+					}
 				}else if ("play".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().play();
+					parsingOk = true;
 				}else if ("stop".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().stop();
+					parsingOk = true;
 				}else if ("first".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().first();
+					parsingOk = true;
 				}else if ("previous".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().previous();
+					parsingOk = true;
 				}else if ("next".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().next();
+					parsingOk = true;
 				}else if ("last".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().last();
+					parsingOk = true;
+				}else if ("list".equalsIgnoreCase(command)) {
+					if ("playlist".equalsIgnoreCase(p1)){
+						logger.info("\n"+getUpnpControllerService().getRendererState().getPlaylist().prettyPrint());
+						parsingOk = true;
+					}else if ("devices".equalsIgnoreCase(p1)){
+						logger.info("\n"+getUpnpControllerService().getDeviceRegistry().prettyPrint());
+						parsingOk = true;
+					} 
+				}else if ("set".equalsIgnoreCase(command)) {
+					if ("device".equalsIgnoreCase(p1)){
+						if (getUpnpControllerService().getDeviceRegistry().containsKey(p2)){
+							if ("selected".equalsIgnoreCase(p3)){
+								getUpnpControllerService().setSelectedDevice(p2);
+								parsingOk = true;
+							}else if ("name".equalsIgnoreCase(p3)){
+								getUpnpControllerService().setDeviceCustomName(p2, p4);
+								parsingOk = true;
+							}
+						}else if ("null".equals(p2) && "selected".equalsIgnoreCase(p3)){
+							getUpnpControllerService().clearSelectedDevice();
+							parsingOk = true;
+						}
+					}else if ("devices".equalsIgnoreCase(p1)){
+						logger.info("\n"+getUpnpControllerService().getDeviceRegistry().prettyPrint());
+						parsingOk = true;
+					} 
 				}else if ("playlist".equalsIgnoreCase(command) || "pl".equalsIgnoreCase(command)) {
 					logger.info("\n"+getUpnpControllerService().getRendererState().getPlaylist().prettyPrint());
+					parsingOk = true;
 				}else if ("shuffle".equalsIgnoreCase(command)) {
-					if (p1 == null)
+					if (p1 == null){
 						logger.info("shuffle = "+getUpnpControllerService().getRendererState().getPlaylist().getShuffle());
-					else if ("on".equalsIgnoreCase(p1))
+						parsingOk = true;
+					}else if ("on".equalsIgnoreCase(p1)){
 						getUpnpControllerService().getRendererState().getPlaylist().setShuffle(true);
-					else if ("off".equalsIgnoreCase(p1))
+						parsingOk = true;
+					}else if ("off".equalsIgnoreCase(p1)){
 						getUpnpControllerService().getRendererState().getPlaylist().setShuffle(false);
+						parsingOk = true;
+					}
 				}else if ("repeat".equalsIgnoreCase(command)) {
-					if (p1 == null)
+					if (p1 == null){
 						logger.info("repeat = "+getUpnpControllerService().getRendererState().getPlaylist().getRepeat());
-					else if ("all".equalsIgnoreCase(p1))
+						parsingOk = true;
+					}else if ("all".equalsIgnoreCase(p1)){
 						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.ALL);
-					else if ("off".equalsIgnoreCase(p1))
+						parsingOk = true;
+					}else if ("off".equalsIgnoreCase(p1)){
 						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.OFF);
-					else if ("track".equalsIgnoreCase(p1))
+						parsingOk = true;
+					}else if ("track".equalsIgnoreCase(p1)){
 						getUpnpControllerService().getRendererState().getPlaylist().setRepeat(RepeatMode.TRACK);
+						parsingOk = true;
+					}
 				}else if ("mute".equalsIgnoreCase(command)) {
 					getUpnpControllerService().getRendererCommand().toggleMute(false);
+					parsingOk = true;
 				}else if ("vol".equalsIgnoreCase(command)) {
 					int vol = getUpnpControllerService().getRendererState().getVolume();
-					if (p1 == null)
+					if (p1 == null){
 						logger.info("Volume = "+getUpnpControllerService().getRendererState().getVolume());
-					else{
-						int bias = 5;
-						try {
-							bias = Integer.parseInt(p2);
-						} catch (Exception e) {
-							//nothing to do
+						parsingOk = true;
+					}else{
+						if ("+".equals(p1) || "-".equals(p1)){
+							int bias = 5;
+							try {
+								bias = Integer.parseInt(p2);
+							} catch (Exception e) {
+								//nothing to do
+							}
+							if ("+".equals(p1)){
+								getUpnpControllerService().getRendererCommand().setVolume(vol+bias, false);
+								parsingOk = true;
+							}else if ("-".equals(p1)){
+								getUpnpControllerService().getRendererCommand().setVolume(vol-bias, false);
+								parsingOk = true;
+							}
+						}else{
+							Integer newvol = null;
+							try {
+								newvol = Integer.parseInt(p1);
+							} catch (Exception e) {
+								//nothing to do
+							}
+							if (newvol != null){
+								getUpnpControllerService().getRendererCommand().setVolume(newvol, false);
+								parsingOk = true;
+							}
 						}
-						if ("+".equalsIgnoreCase(p1))
-							getUpnpControllerService().getRendererCommand().setVolume(vol+bias, false);
-						else if ("-".equalsIgnoreCase(p1))
-							getUpnpControllerService().getRendererCommand().setVolume(vol-bias, false);
 					}
 				}else if ("logger".equalsIgnoreCase(command)) {
+					parsingOk = true;
 					if (p1 == null)
 						logger.info("logger level = "+LogManager.getRootLogger().getLevel());
 					else if ("OFF".equalsIgnoreCase(p1))
@@ -282,15 +361,18 @@ public class ServiceFactory {
 						LogManager.getRootLogger().setLevel(Level.DEBUG);
 					else if ("TRACE".equalsIgnoreCase(p1))
 						LogManager.getRootLogger().setLevel(Level.TRACE);
+					else
+						parsingOk = false;
 				}else if ("exit".equalsIgnoreCase(command)) {
 					logger.info("Terminating program by exit request... ");
 					sc.close();
 					shutdown();
 					break;
-				}else{
-					logger.warn("Unknown shell command ["+line+"]");
 				}
-				logger.info("Parsing of command ["+line+"] completed");
+				if (parsingOk)
+					logger.info("Parsing of command ["+line+"] completed");
+				else
+					logger.warn("Unknown shell command ["+line+"]");
 			}catch (Exception e){
 				logger.warn("Exception thrown executing command ["+line+"]", e);
 			}

@@ -112,9 +112,8 @@ TODO: rivedere la ServiceFactory per autospegnersi in caso di eccezioni durante 
 es. N:\ non accessibile, oppure porta del mediaserver già occupata da altra istanza
 -----> qlcs fatto, ma decidere come fare per i controlli init!!! checkState? li tengo o li tolgo?
  - testare nel caso della porta occupata perchè non so se va.... non sembra interrompersi
+ - e i caso configuration parametro required assente?
 
-
-TODO: vedere se è rispettato il concetto di "Waiting for previous renderer", ovvero all'avvio cerco il renderer precedente e lo autoseleziono come selectedDevice
 
 TODO: supporto per il play diretto da esterno:
 ci vogliono dei test nel musichub.alexa:
@@ -122,3 +121,10 @@ ci vogliono dei test nel musichub.alexa:
 - test connessione al media server (per il play diretto su echo)
 
 TODO: fare casi d'uso scritti con attori ecc..
+
+TODO: parametri opzionali: STOP when starting, STOP when exiting, reconnect with previous device
+TODO: vedere se è rispettato il concetto di "Waiting for previous renderer", ovvero all'avvio cerco il renderer precedente e lo autoseleziono come selectedDevice
+
+TODO: come prove per la console di test, implementare le selezioni da lista 
+es. list devices (ONLINE, SELECTED); select device 1; 
+    list playlist; select song 2

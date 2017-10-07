@@ -4,14 +4,12 @@ import java.util.List;
 
 import org.fourthline.cling.UpnpService;
 
-import it.musichub.server.library.model.Folder;
-import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.IMusicHubService;
 import it.musichub.server.upnp.ex.DeviceNotFoundException;
 import it.musichub.server.upnp.ex.NoSelectedDeviceException;
 import it.musichub.server.upnp.model.Device;
+import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
-import it.musichub.server.upnp.model.IPlaylistState.RepeatMode;
 import it.musichub.server.upnp.renderer.IRendererCommand;
 import it.musichub.server.upnp.renderer.IRendererState;
 
@@ -25,6 +23,7 @@ public interface UpnpControllerService extends IMusicHubService {
 	 */
 	// INTERNAL METHODS
 	public UpnpService getUpnpService();
+	public DeviceRegistry getDeviceRegistry(); //TODO provvisorio???
 	public IRendererState getRendererState(); //TODO provvisorio
 	public IRendererCommand getRendererCommand(); //TODO provvisorio
 	public MediaServer getMediaServer(); //TODO provvisorio???

@@ -68,6 +68,11 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	}
 	
 	@Override
+	public DeviceRegistry getDeviceRegistry() {
+		return deviceRegistry;
+	}
+	
+	@Override
 	public IRendererState getRendererState(){ //TODO provvisorio
 		return rendererState;
 	}
@@ -142,42 +147,42 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public void start() throws ServiceStartException {
-		// Send a search message to all devices and services, they should respond soon
-//		for (UDADeviceType udaType : getDeviceTypes())
-			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(Constants.UPNP_DEVICE_TYPE)));
-			
 		//init http server
         try {
         	mediaServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         } catch (IOException e) {
-   			throw new ServiceStartException("Couldn't start media server", e);
+   			throw new ServiceStartException("Could not start media server on port "+getConfiguration().getMediaHttpPort(), e);
         }
+        
+		// Send a search message to all devices and services, they should respond soon
+//		for (UDADeviceType udaType : getDeviceTypes())
+			upnpService.getControlPoint().search(new UDADeviceTypeHeader(/*udaType*/new UDADeviceType(Constants.UPNP_DEVICE_TYPE)));
 
         
 
         
         //EXPERIMENT ---------------------------------------------
-        try {
-			TimeUnit.SECONDS.sleep(2);
-		} catch (Exception e) {}
-        
-        
-        Collection<Device> devices = deviceRegistry.values();
-        for (Device device : devices){
-        	if (isDeviceOnline(device)){
-        		setSelectedDevice(device);
-        		logger.fatal("Selected device "+device.getFriendlyName());
-        	}
-        }
-        if (!isDeviceSelected()){
-	        try {
-	        	logger.fatal("Manually selecting device...");
-				setSelectedDevice("uuid:5f9ec1b3-ed59-1900-4530-00a0deb52729");
-			} catch (DeviceNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-        }
+//        try {
+//			TimeUnit.SECONDS.sleep(2);
+//		} catch (Exception e) {}
+//        
+//        
+//        Collection<Device> devices = deviceRegistry.values();
+//        for (Device device : devices){
+//        	if (isDeviceOnline(device)){
+//        		setSelectedDevice(device);
+//        		logger.fatal("Selected device "+device.getFriendlyName());
+//        	}
+//        }
+//        if (!isDeviceSelected()){
+//	        try {
+//	        	logger.fatal("Manually selecting device...");
+//				setSelectedDevice("uuid:5f9ec1b3-ed59-1900-4530-00a0deb52729");
+//			} catch (DeviceNotFoundException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//        }
 
 //        rendererCommand.resume();
         try {
@@ -197,20 +202,20 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public void stop() throws ServiceStopException {
-		mediaServer.stop();
-		
 		upnpService.shutdown();
+		
+		mediaServer.stop();
 		
 		saveToDisk();
 	}
 
 	@Override
 	public void destroy() throws ServiceDestroyException {
-		mediaServer = null;
-		
 		upnpService = null;
 		rendererState = null;
 		rendererCommand = null;
+		
+		mediaServer = null;
 		
 		deviceRegistry = null;
 	}
