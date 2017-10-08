@@ -101,8 +101,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		pause = false;
 		if (!thread.isAlive())
 			thread.start();
-		else
-			thread.interrupt();
+//		else
+//			thread.interrupt();
 	}
 
 	private static UpnpControllerService getUpnpControllerService(){
@@ -244,7 +244,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 		if (getAVTransportService() == null)
 			return null;
 		
-    	Future f = controlPoint.execute(new Stop(getAVTransportService()) {
+    	Future f = controlPoint.execute(new Pause(getAVTransportService()) {
 			@Override
 			public void success(ActionInvocation invocation){
 				logger.trace("Success stopping ! ");

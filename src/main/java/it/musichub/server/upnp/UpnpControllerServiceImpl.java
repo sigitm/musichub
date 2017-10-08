@@ -227,12 +227,16 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 			Device dev = DeviceFactory.fromClingDevice(device);
 			dev = deviceRegistry.mergeDevice(dev);
 			dev.registerOnline();
+			if (deviceRegistry.isDeviceSelected(dev))
+				rendererCommand.resumeUpdates();
 		}
 		
 		private void registerOffline(RemoteDevice device){
 			Device dev = DeviceFactory.fromClingDevice(device);
 			dev = deviceRegistry.mergeDevice(dev);
 			dev.registerOffline();
+			if (deviceRegistry.isDeviceSelected(dev))
+				rendererCommand.pauseUpdates();
 		}
 		
 		public void remoteDeviceDiscoveryStarted(Registry registry, RemoteDevice device) {
@@ -301,7 +305,10 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 	public void setSelectedDevice(Device device){
 		deviceRegistry.setSelectedDevice(device);
 		rendererState.reset();
-		rendererCommand.resumeUpdates();
+		if (isDeviceOnline(device))
+			rendererCommand.resumeUpdates();
+		else
+			rendererCommand.pauseUpdates();
 	}
 	
 	@Override
@@ -321,7 +328,6 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public List<Device> getDevices(){
-		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXX usare gli streams o fare refactoring del registry
 		return new ArrayList<Device>(deviceRegistry.values());
 	}
 	
@@ -335,14 +341,20 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 
 	@Override
 	public Device getDeviceByCustomName(String customName) throws DeviceNotFoundException {
-		// TODO Auto-generated method stub
+		///TODO xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX lanciare DeviceNotFoundException???? oppure restituire null?
+		// MEGLIO LA SECONDA, TOGLIERE TUTTE LE ECCEZIONI INUTILI::....
+		if (customName == null)
+			throw new IllegalArgumentException("customName cannot be null");
+		
+		for (Device device : deviceRegistry.values()){
+			if (customName.equals(device.getCustomName()))
+				return device;
+		}
 		return null;
-		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	}
 
 	@Override
 	public List<Device> getOnlineDevices(){
-		//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXX usare gli streams o fare refactoring del registry
 		List<Device> d = new ArrayList<Device>();
 		for (Device device : deviceRegistry.values())
 			d.add(device);

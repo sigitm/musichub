@@ -32,6 +32,7 @@ import it.musichub.server.runner.IMusicHubService.ServiceState;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.runner.ServiceRegistry.ServiceDefinition;
 import it.musichub.server.upnp.UpnpControllerService;
+import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.model.IPlaylistState.RepeatMode;
 import it.musichub.server.upnp.renderer.RendererCommand;
 
@@ -263,12 +264,21 @@ public class ServiceFactory {
 					} 
 				}else if ("set".equalsIgnoreCase(command)) {
 					if ("device".equalsIgnoreCase(p1)){
-						if (getUpnpControllerService().getDeviceRegistry().containsKey(p2)){
+						//parsing device udn / customName
+						String udn = null;
+						if (getUpnpControllerService().getDeviceRegistry().containsKey(p2))
+							udn = p2;
+						else{
+							Device device = getUpnpControllerService().getDeviceByCustomName(p2);
+							udn = device.getUdn();
+						}
+						
+						if (udn != null){
 							if ("selected".equalsIgnoreCase(p3)){
-								getUpnpControllerService().setSelectedDevice(p2);
+								getUpnpControllerService().setSelectedDevice(udn);
 								parsingOk = true;
 							}else if ("name".equalsIgnoreCase(p3)){
-								getUpnpControllerService().setDeviceCustomName(p2, p4);
+								getUpnpControllerService().setDeviceCustomName(udn, p4);
 								parsingOk = true;
 							}
 						}else if ("null".equals(p2) && "selected".equalsIgnoreCase(p3)){
