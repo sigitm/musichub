@@ -1,4 +1,4 @@
-package it.musichub.server.library;
+package it.musichub.server.search;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +15,7 @@ import it.musichub.server.ex.ServiceDestroyException;
 import it.musichub.server.ex.ServiceInitException;
 import it.musichub.server.ex.ServiceStartException;
 import it.musichub.server.ex.ServiceStopException;
+import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.library.utils.SmartBeanComparator;
@@ -22,7 +23,7 @@ import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
 
-public class SongsSearch extends MusicHubServiceImpl implements SearchService {
+public class SearchServiceImpl extends MusicHubServiceImpl implements SearchService {
 
 	/*
 	 * EVOLUZIONI:
@@ -38,7 +39,7 @@ public class SongsSearch extends MusicHubServiceImpl implements SearchService {
 		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
 	}
 	
-	public SongsSearch() {
+	public SearchServiceImpl() {
 		super();
 	}
 
@@ -153,6 +154,151 @@ public class SongsSearch extends MusicHubServiceImpl implements SearchService {
 	 * - e per fare le condizioni complesse? es. OR, parentesi...
 	 */
 	
+    public interface Clause {
+		public String getLogicalOperator();
+		public String getExpression();
+    }
+    
+    public abstract class AbstractClause implements Clause {
+    	private String logicalOperator = "&&";
+    	
+		public AbstractClause() {
+			super();
+		}
+
+		public AbstractClause(String logicalOperator) {
+			this();
+			this.logicalOperator = logicalOperator;
+		}
+
+		public String getLogicalOperator() {
+			return logicalOperator;
+		}
+
+		public void setLogicalOperator(String logicalOperator) {
+			this.logicalOperator = logicalOperator;
+		}
+    }
+    
+    public class BasicClause extends AbstractClause {
+    	private String expression;
+
+		@Override
+		public String getExpression() {
+			return expression;
+		}
+    }
+    
+	public class SimpleClause extends AbstractClause {
+		private String field;
+		private String operation;
+		private String value;
+		
+		public SimpleClause(String field, String operation, String value) {
+			super();
+			this.field = field;
+			this.operation = operation;
+			this.value = value;
+		}
+		
+		public SimpleClause(String logicalOperator, String field, String operation, String value) {
+			super(logicalOperator);
+			this.field = field;
+			this.operation = operation;
+			this.value = value;
+		}
+		
+		public String getField() {
+			return field;
+		}
+
+		public void setField(String field) {
+			this.field = field;
+		}
+
+		public String getOperation() {
+			return operation;
+		}
+
+		public void setOperation(String operation) {
+			this.operation = operation;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+		
+		@Override
+		public String getExpression() {
+			return field+" "+operation+" "+value;
+		}
+	}
+	
+	public class CompoundClause extends AbstractClause {
+		private List<Clause> clauses = new ArrayList<>();
+		
+		public CompoundClause() {
+			super();
+		}
+
+		public CompoundClause(String logicalOperator) {
+			super(logicalOperator);
+		}
+
+		public void addClause(Clause clause) {
+			clauses.add(clause);
+		}
+
+		@Override
+		public String getExpression() {
+			StringBuilder sb = new StringBuilder();
+			boolean firstClause = true; //TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX importare le StringUtils.concat
+			for (Clause clause : clauses){
+				if (!firstClause){
+					sb.append(" ");
+					sb.append(clause.getLogicalOperator());
+					sb.append(" ");
+				}
+				sb.append(" ( ");
+				sb.append(clause.getExpression());
+				sb.append(" ) ");
+				firstClause = false;
+			}
+			return sb.toString();
+		}
+	}
+	
+	public class QbeClause extends CompoundClause {
+
+		public QbeClause(Object qbe) {
+			super();
+			addClauses(qbe);
+		}
+
+		public QbeClause(String logicalOperator, Object qbe) {
+			super(logicalOperator);
+			addClauses(qbe);
+		}
+		
+		private void addClauses(Object qbe){
+			//TODO XXXXXXXXXXXXXX con la reflection prendo tutti i campi not null e li metto in AND (e l'operazione?? like??)
+			//for..............
+			Clause x = new SimpleClause("artist", "like", "Liga*");
+			addClause(x);
+		}
+		
+		
+	}
+	
+	public static void main(String[] args) {
+		//TODO XXXXXXXXXXXXXXXXXXXXXXXXX testare le clause.. dopo diventerà un junit!
+		
+		//TODO XXXXXXXX sistemare gli operator e le operation con un enum
+	}
 	
 	
 }

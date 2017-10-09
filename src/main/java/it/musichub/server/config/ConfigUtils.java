@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import it.musichub.server.library.SongsIndexer;
+import it.musichub.server.library.IndexerServiceImpl;
 
 public class ConfigUtils implements Serializable {
 

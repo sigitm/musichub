@@ -1,4 +1,4 @@
-package it.musichub.server.library;
+package it.musichub.server.search;
 
 import java.io.Serializable;
 

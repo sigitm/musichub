@@ -3,9 +3,9 @@ package it.musichub.server.runner;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import it.musichub.server.library.SongsIndexer;
-import it.musichub.server.library.SongsSearch;
+import it.musichub.server.library.IndexerServiceImpl;
 import it.musichub.server.persistence.PersistenceEngine;
+import it.musichub.server.search.SearchServiceImpl;
 import it.musichub.server.upnp.UpnpControllerServiceImpl;
 
 public class ServiceRegistry {
@@ -22,10 +22,10 @@ public class ServiceRegistry {
 		 * upnpcontrol: persistence, indexer
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
-		put(Service.indexer, new ServiceDefinition(SongsIndexer.class){{
+		put(Service.indexer, new ServiceDefinition(IndexerServiceImpl.class){{
 //			addArg("startingDir", String.class);
 		}});
-		put(Service.search, new ServiceDefinition(SongsSearch.class));
+		put(Service.search, new ServiceDefinition(SearchServiceImpl.class));
 		put(Service.upnpcontroller, new ServiceDefinition(UpnpControllerServiceImpl.class));
 	}};
 	

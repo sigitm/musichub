@@ -36,7 +36,7 @@ import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
 
-public class SongsIndexer extends MusicHubServiceImpl implements IndexerService {
+public class IndexerServiceImpl extends MusicHubServiceImpl implements IndexerService {
 	
 	/*
 	 * EVOLUZIONI:
@@ -59,9 +59,9 @@ public class SongsIndexer extends MusicHubServiceImpl implements IndexerService 
 	
 	
 	
-	private final static Logger logger = Logger.getLogger(SongsIndexer.class);
+	private final static Logger logger = Logger.getLogger(IndexerServiceImpl.class);
 	
-	public SongsIndexer() {
+	public IndexerServiceImpl() {
 		super();
 		this.startingDir = getConfiguration().getContentDir();
 	}

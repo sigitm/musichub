@@ -9,6 +9,8 @@ import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
+import it.musichub.server.search.Query;
+import it.musichub.server.search.SearchService;
 
 public class IndexerServiceTest {
 
