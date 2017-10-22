@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.MapContext;
+import org.apache.log4j.Logger;
 
 import it.musichub.server.ex.ServiceDestroyException;
 import it.musichub.server.ex.ServiceInitException;
@@ -19,11 +21,17 @@ import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.library.utils.SmartBeanComparator;
+import it.musichub.server.library.utils.SmartBeanComparator.Order;
 import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
-import it.musichub.server.search.SearchServiceImpl.Clause.LogicalOperator;
-import it.musichub.server.search.SearchServiceImpl.SimpleClause.Operator;
+import it.musichub.server.search.model.Clause;
+import it.musichub.server.search.model.Clause.LogicalOperator;
+import it.musichub.server.search.model.CompoundClause;
+import it.musichub.server.search.model.QbeClause;
+import it.musichub.server.search.model.Query;
+import it.musichub.server.search.model.SimpleClause;
+import it.musichub.server.search.model.SimpleClause.Operator;
 
 public class SearchServiceImpl extends MusicHubServiceImpl implements SearchService {
 
@@ -36,6 +44,8 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 	 */
 
 	private JexlEngine jexl = null;
+	
+	private final static Logger logger = Logger.getLogger(SearchServiceImpl.class);
 	
 	private IndexerService getIndexerService(){
 		return (IndexerService) ServiceFactory.getServiceInstance(Service.indexer);
@@ -68,19 +78,19 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 		jexl = null;
 	}
 	
-	@Override
-	public Query createQuery(String query){
-		JexlExpression e = jexl.createExpression(query);
-		return new Query(e);
-	}
-	
-	private static boolean evaluate(Song song, Query query){
+//	@Override
+//	public QueryOLD createQuery(String query){
+//		JexlExpression e = jexl.createExpression(query);
+//		return new QueryOLD(e);
+//	}
+//	
+	private boolean evaluate(Song song, JexlExpression expr){
 		// populate the context
 	    JexlContext context = new MapContext();
 	    context.set("song", song);
 
 	    // work it out
-	    boolean result = (boolean) query.getExpression().evaluate(context);
+	    boolean result = (boolean) expr.evaluate(context);
 	    return result;
 	}
 	
@@ -92,35 +102,40 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 	
 	@Override
     public List<Song> execute(Query query, Folder folder, boolean recurse){
+		//TODO XXXXXXXXXXXXX l'ordering inglobarlo nella query??
+		
+		// create expression
+		JexlExpression expr = jexl.createExpression(query.getExpression());
     	
+		// visit tree
     	List<Song> searchResult = new ArrayList<Song>();
-    	doVisit(folder, recurse, query, searchResult);
+    	doVisit(folder, recurse, expr, searchResult);
     	
-    	
-    	//TODO: test ordinamento
-    	List<String> ordering = Arrays.asList("artist", "title"); //TODO: da prendere in input
-    	
-    	List<String> reverseOrdering = new ArrayList<>(ordering);
+    	// ordering
+    	Map<String, Order> ordering = query.getOrdering();
+    	List<String> reverseOrdering = new ArrayList<>(ordering.keySet());
     	Collections.reverse(reverseOrdering); //TODO: va gestito anche l'asc/desc
-    	for (String field : reverseOrdering)
-    		Collections.sort(searchResult, new SmartBeanComparator(field));
+    	for (String field : reverseOrdering){
+    		Order orderType = ordering.get(field);
+    		Collections.sort(searchResult, new SmartBeanComparator(field, orderType));
+    	}
     	
-    	//TODO clonare le songs!! altrimenti arrivano tutti i rami!
+    	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXX clonare le songs!! altrimenti arrivano tutti i rami!
     	
     	
     	return searchResult;
     }
    
-    private void doVisit(Folder folder, boolean recurse, Query query, List<Song> searchResult){
+    private void doVisit(Folder folder, boolean recurse, JexlExpression expr, List<Song> searchResult){
 		if (folder.getSongs() != null){
 			for (Song song : folder.getSongs()) {
-				if (evaluate(song, query))
+				if (evaluate(song, expr))
 					searchResult.add(song);
 			}
 		}
 		if (recurse && folder.getFolders() != null){
 			for (Folder child : folder.getFolders())
-				doVisit(child, recurse, query, searchResult);
+				doVisit(child, recurse, expr, searchResult);
 		}
     }
     
@@ -159,287 +174,23 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 	 * - e per fare le condizioni complesse? es. OR, parentesi...
 	 */
 	
-    public static interface Clause {
-    	
-    	public static enum LogicalOperator{
-    		AND {
-				@Override
-				public String getExpression() {
-					return "&&";
-				}
-			},
 
-    		OR {
-				@Override
-				public String getExpression() {
-					return "||";
-				}
-			};
-    	
-    		public abstract String getExpression();
-    	};
-    	
-		public LogicalOperator getLogicalOperator();
-		public String getExpression();
-    }
     
-    public static abstract class AbstractClause implements Clause {
-    	private LogicalOperator logicalOperator = LogicalOperator.AND;
-    	
-		public AbstractClause() {
-			super();
-		}
 
-		public AbstractClause(LogicalOperator logicalOperator) {
-			this();
-			this.logicalOperator = logicalOperator;
-		}
-
-		public LogicalOperator getLogicalOperator() {
-			return logicalOperator;
-		}
-
-		public void setLogicalOperator(LogicalOperator logicalOperator) {
-			this.logicalOperator = logicalOperator;
-		}
-		
-		public abstract String getExpression();
-
-		@Override
-		public String toString() {
-			return this.getClass().getSimpleName()+" [logicalOperator=" + getLogicalOperator() + ", expression="+ getExpression() + "]";
-		}
-    }
     
-    public static class BasicClause extends AbstractClause {
-    	private String expression;
 
-		public BasicClause(String expression) {
-			super();
-			this.expression = expression;
-		}
-
-		public BasicClause(LogicalOperator logicalOperator, String expression) {
-			super(logicalOperator);
-			this.expression = expression;
-		}
-		
-		@Override
-		public String getExpression() {
-			return expression;
-		}
-    }
     
-	public static class SimpleClause extends AbstractClause {
-    	
-		public static enum Operator{
-    		EQUALS {
-				@Override
-				public String getExpression() {
-					return "==";
-				}
-			},
 
-    		NOT_EQUALS {
-				@Override
-				public String getExpression() {
-					return "!=";
-				}
-			},
-    		
-    		LIKE {
-				@Override
-				public String getExpression() {
-					return "=~";
-				}
-			},
-			
-			NOT_LIKE {
-				@Override
-				public String getExpression() {
-					return "!~";
-				}
-			},
-			
-			LESS {
-				@Override
-				public String getExpression() {
-					return "<";
-				}
-			},
-			
-			LESS_EQUALS {
-				@Override
-				public String getExpression() {
-					return "<=";
-				}
-			},
-			
-			GREATER {
-				@Override
-				public String getExpression() {
-					return ">";
-				}
-			},
-			
-			GREATER_EQUALS {
-				@Override
-				public String getExpression() {
-					return ">=";
-				}
-			};
-    	
-    		public abstract String getExpression();
-    	};
-		
-		private String property;
-		private Operator operator;
-		private Object value;
-//		private boolean caseSensitive = false; //TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		
-		public SimpleClause(String property, Operator operator, Object value) {
-			super();
-			this.property = property;
-			this.operator = operator;
-			this.value = value;
-		}
-		
-		public SimpleClause(LogicalOperator logicalOperator, String property, Operator operator, Object value) {
-			super(logicalOperator);
-			this.property = property;
-			this.operator = operator;
-			this.value = value;
-		}
-		
-		public String getProperty() {
-			return property;
-		}
-
-		public void setProperty(String property) {
-			this.property = property;
-		}
-
-		public Operator getOperator() {
-			return operator;
-		}
-
-		public void setOperator(Operator operator) {
-			this.operator = operator;
-		}
-
-		public Object getValue() {
-			return value;
-		}
-
-		public void setValue(Object value) {
-			this.value = value;
-		}
-		
-		@Override
-		public String getExpression() {
-			String propertyStr = "song."+property;
-			String valueStr = value != null ? value.toString() : null;
-			if (operator == Operator.LIKE || operator == Operator.NOT_LIKE)
-				valueStr = wildcardToRegex(valueStr);
-			///TODO ESCAPE DEGLI APOSTROFI!!!
-//			if (!caseSensitive && (operator=="EQUALS" || operator=="NOT_EQUALS")){  //TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-//				propertyStr
-//			}
-			
-			if (/*!caseSensitive &&*/ value instanceof String && (operator == Operator.EQUALS || operator == Operator.NOT_EQUALS || operator == Operator.LIKE || operator == Operator.NOT_LIKE)){
-				propertyStr += ".toLowerCase()";
-				valueStr += ".toLowerCase()"; //TODO XXXXXXXXX CASO NULL
-			}
-			
-			return propertyStr+" "+operator.getExpression()+" '"+valueStr+"'";
-		}
-		
-		private static String wildcardToRegex(String wildcardString) {
-			if (wildcardString == null)
-				return null;
-			
-		    // The 12 is arbitrary, you may adjust it to fit your needs depending
-		    // on how many special characters you expect in a single pattern.
-		    StringBuilder sb = new StringBuilder(wildcardString.length() + 12);
-		    sb.append('^');
-		    for (int i = 0; i < wildcardString.length(); ++i) {
-		        char c = wildcardString.charAt(i);
-		        if (c == '*') {
-		            sb.append("\\w*");
-		        } else if (c == '?') {
-		            sb.append("\\w");
-		        } else if ("\\.[]{}()+-^$|".indexOf(c) >= 0) {
-		            sb.append('\\');
-		            sb.append(c);
-		        } else {
-		            sb.append(c);
-		        }
-		    }
-		    sb.append('$');
-		    return sb.toString();
-		}
-	}
 	
-	public static class CompoundClause extends AbstractClause {
-		private List<Clause> clauses = new ArrayList<>();
-		
-		public CompoundClause() {
-			super();
-		}
 
-		public CompoundClause(LogicalOperator logicalOperator) {
-			super(logicalOperator);
-		}
-
-		public void addClause(Clause clause) {
-			clauses.add(clause);
-		}
-
-		@Override
-		public String getExpression() {
-			StringBuilder sb = new StringBuilder();
-			boolean firstClause = true; //TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX importare le StringUtils.concat
-			for (Clause clause : clauses){
-				if (!firstClause){
-					sb.append(" ");
-					sb.append(clause.getLogicalOperator().getExpression());
-					sb.append(" ");
-				}
-				sb.append(" ( ");
-				sb.append(clause.getExpression());
-				sb.append(" ) ");
-				firstClause = false;
-			}
-			return sb.toString();
-		}
-	}
 	
-	public static class QbeClause extends CompoundClause {
 
-		public QbeClause(Object qbe) {
-			super();
-			addClauses(qbe);
-		}
-
-		public QbeClause(LogicalOperator logicalOperator, Object qbe) {
-			super(logicalOperator);
-			addClauses(qbe);
-		}
-		
-		private void addClauses(Object qbe){
-			//TODO XXXXXXXXXXXXXX con la reflection prendo tutti i campi not null e li metto in AND (e l'operazione?? like??)
-			//for..............
-//			Clause x = new SimpleClause("artist", Operator.LIKE, "Liga*");
-//			addClause(x);
-		}
-		
-		
-	}
 	
 	public static void main(String[] args) {
 		//TODO XXXXXXXXXXXXXXXXXXXXXXXXX testare le clause.. dopo diventerà un junit!
 		
-		
+		Folder f = new Folder();
+
 		Song s1 = new Song();
 		s1.setArtist("Ligabue");
 		s1.setTitle("Certe notti");
@@ -449,10 +200,12 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 		s2.setTitle("Summer of '69");
 		s2.setYear(1981);
 		
+		f.addSong(s1);
+		f.addSong(s2);
 		
-		//TODO XXXXXXXX sistemare gli operator e le operator con un enum
+
 //		Clause c1 = new BasicClause("song.artist.toLowerCase() =~ '^Ligabue$'.toLowerCase()");
-		Clause c1 = new SimpleClause(LogicalOperator.OR, "artist", Operator.LIKE, "Ligabue");
+		Clause c1 = new SimpleClause(LogicalOperator.OR, "artist", Operator.EQUALS, "ligabue");
 		Clause c2 = new SimpleClause(LogicalOperator.OR, "artist", Operator.EQUALS, "Bryan Adams");
 		CompoundClause c3 = new CompoundClause(LogicalOperator.AND);
 		c3.addClause(c1);
@@ -463,10 +216,25 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 		System.out.println(c4);
 		System.out.println();
 		
-		JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(true).create();
-		JexlExpression e = jexl.createExpression(c4.getExpression());
-		System.out.println("s1="+evaluate(s1, new Query(e)));
-		System.out.println("s2="+evaluate(s2, new Query(e)));
+		Query query = new Query();
+//		query.TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+//		FINIRE L'ESEMPIO CON LA QUERY NUOVA
+		
+		
+//		JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(true).create();
+//		JexlExpression e = jexl.createExpression(c4.getExpression());
+//		System.out.println("s1="+evaluate(s1, new QueryOLD(e)));
+//		System.out.println("s2="+evaluate(s2, new QueryOLD(e)));
+//		System.out.println();
+//		
+//		QbeClause c5 = new QbeClause(s2);
+//		System.out.println(c5);
+//		System.out.println();
+//		e = jexl.createExpression(c5.getExpression());
+//		System.out.println("s1="+evaluate(s1, new QueryOLD(e)));
+//		System.out.println("s2="+evaluate(s2, new QueryOLD(e)));
+		
+		
 	}
 	
 	

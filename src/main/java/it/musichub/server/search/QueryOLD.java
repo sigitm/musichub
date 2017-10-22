@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 import org.apache.commons.jexl3.JexlExpression;
 
-public class Query implements Serializable {
+public class QueryOLD implements Serializable {
 
 	private JexlExpression expression;
 
-	public Query(JexlExpression expression) {
+	public QueryOLD(JexlExpression expression) {
 		super();
 		this.expression = expression;
 	}

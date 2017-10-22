@@ -22,8 +22,8 @@ public class Song implements Serializable {
 	/*
 	 * Song data
 	 */
-	private boolean id3v1;
-	private boolean id3v2;
+	private Boolean id3v1;
+	private Boolean id3v2;
 	private String title;
 	private String artist;
 	private String album;
@@ -94,16 +94,16 @@ public class Song implements Serializable {
 	public void setVbr(Boolean vbr) {
 		this.vbr = vbr;
 	}
-	public boolean isId3v1() {
+	public Boolean getId3v1() {
 		return id3v1;
 	}
-	public void setId3v1(boolean id3v1) {
+	public void setId3v1(Boolean id3v1) {
 		this.id3v1 = id3v1;
 	}
-	public boolean isId3v2() {
+	public Boolean getId3v2() {
 		return id3v2;
 	}
-	public void setId3v2(boolean id3v2) {
+	public void setId3v2(Boolean id3v2) {
 		this.id3v2 = id3v2;
 	}
 	public String getTitle() {
@@ -162,43 +162,29 @@ public class Song implements Serializable {
 	}
 	
 	
-	/**
-	 * Verifica se il parsing della canzone è aggiornato
-	 * 
-	 * @return 
-	 */
-	public boolean isSongUpdated(){
-		//approssimazione: verifico size e lastModified
-		Long existingSize = this.getSize();
-		Long existingLastModified = this.getLastModified();
-		
-		File newFile = new File(path);
-		Long newSize = newFile.length();
-		Long newLastModified = newFile.lastModified();
-		
-		if (existingSize != null && existingSize.equals(newSize)){
-			if (existingLastModified != null && existingLastModified.equals(newLastModified)){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
 	public String getLengthHhMmSs() {
+		if (length == null)
+			return null;
+		
 		return String.format("%02d:%02d:%02d", length / 3600, (length % 3600) / 60, (length % 60));
 	}
 	
 	public String getLengthMmSs() {
+		if (length == null)
+			return null;
+		
 		return String.format("%02d:%02d", (length % 3600) / 60, (length % 60));
 	}
 	
 	public String getReadableLength() {
+		if (length == null)
+			return null;
+		
 		return (length / 3600 > 0) ? getLengthHhMmSs() : getLengthMmSs();
 	}
 	
 	public String getId(){
-		return Integer.toString(path.hashCode()); 
+		return path != null ? Integer.toString(path.hashCode()) : null; 
 	}
 
 	@Override

@@ -348,7 +348,7 @@ public class IndexerServiceImpl extends MusicHubServiceImpl implements IndexerSe
 					try {
 						Song songInCurrentFolder = currentFolderData.currentFolder.getSong(file);
 						if (songInCurrentFolder != null){ //canzone già presente
-							if (songInCurrentFolder.isSongUpdated()){
+							if (SongFactory.isSongUpdated(songInCurrentFolder)){
 								//la canzone è già stata parsata ed è aggiornata
 								logger.info("Song is already parsed.");
 								return CONTINUE;

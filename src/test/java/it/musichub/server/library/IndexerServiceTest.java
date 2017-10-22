@@ -9,7 +9,7 @@ import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
-import it.musichub.server.search.Query;
+import it.musichub.server.search.QueryOLD;
 import it.musichub.server.search.SearchService;
 
 public class IndexerServiceTest {
@@ -88,14 +88,14 @@ public class IndexerServiceTest {
 		System.out.println();
 		System.out.println("****** PARTE 4: search ******");
 		
-		
-		String queryStr = "song.artist == 'Ligabue'";
-		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
-		Query query = ss.createQuery(queryStr);
-		List<Song> results = ss.execute(query);
-		System.out.println("search results:");
-		for (Song song : results)
-			System.out.println(song);
+		///TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX aggiornare!
+//		String queryStr = "song.artist == 'Ligabue'";
+//		SearchService ss = (SearchService) sf.getServiceInstance(Service.search);
+//		QueryOLD query = ss.createQuery(queryStr);
+//		List<Song> results = ss.execute(query);
+//		System.out.println("search results:");
+//		for (Song song : results)
+//			System.out.println(song);
 		
 		
 

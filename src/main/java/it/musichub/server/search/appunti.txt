@@ -1,0 +1,42 @@
+allo start: visita di popolamento mappe
+
+
+SU BUBBLEUPNP:
+
+Albums: mappa di Album(artista[KEY??],titolo[KEY],img) --> songs
+Items: Songs (ordine di default -- ogni cartella spiattellata)
+Playlists: BOH!!!!!!!!! per il momento le playlist "vere" non sono implementate
+Artist: mappa di Artist(artista[KEY]) --> gruppi   [NOTA: se c'è solo una canzone, va direttamente alla canzone!]
+	albums: Album-->songs
+	items: songs
+	date: Anno-->gruppi(albums,items,genre,composer)
+	genre: Genre-->gruppi(items-->songs,album1-->songs,album2...-->songs,[no album]-->songs)
+	composer: Composer-->(albums,items,genre)
+Date: Anno-->gruppi(albums,items,artist,genre,all artists,composer,conductor)
+Genre: Genre-->gruppi(albums,items,artist,date,all artists,composer)
+All Artists:
+Composer:
+Conductor:
+[untagged]:
+[folder view]: Folder+songs (ricorsivamente)
+--BOOKMARKS
+Albums
+Folders
+--VIRTUAL FOLDERS
+Saved playlists
+Recently played
+Random tracks
+
+
+MIA PROPOSTA:
+
+
+
+
+
+NOTA: Album può anche essere [no album] ma quello lo rappresento come null
+
+
+
+OFF TOPIC
+sistemare le query

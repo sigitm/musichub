@@ -91,5 +91,28 @@ public class SongFactory {
 		return year;
 	}
 	
+	/**
+	 * Verifica se il parsing della canzone è aggiornato
+	 * 
+	 * @return 
+	 */
+	public static boolean isSongUpdated(Song s){
+		//approssimazione: verifico size e lastModified
+		Long existingSize = s.getSize();
+		Long existingLastModified = s.getLastModified();
+		
+		File newFile = new File(s.getPath());
+		Long newSize = newFile.length();
+		Long newLastModified = newFile.lastModified();
+		
+		if (existingSize != null && existingSize.equals(newSize)){
+			if (existingLastModified != null && existingLastModified.equals(newLastModified)){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 }
 

@@ -207,7 +207,7 @@ public class Folder implements Serializable {
 	}
 	
 	public String getId(){
-		return Integer.toString(path.hashCode()); 
+		return path != null ? Integer.toString(path.hashCode()) : null; 
 	}
 
 	@Override
