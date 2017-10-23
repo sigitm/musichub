@@ -9,8 +9,6 @@ import it.musichub.server.search.model.Query;
 
 public interface SearchService extends IMusicHubService {
 
-//	public QueryOLD createQuery(String query);
-	
     public List<Song> execute(Query query);
     public List<Song> execute(Query query, Folder folder, boolean recurse);
 

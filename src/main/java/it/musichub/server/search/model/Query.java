@@ -44,5 +44,10 @@ public class Query implements Serializable {
 			return DEFAULT_ORDER;
 		
 		return ordering;
+	}
+
+	@Override
+	public String toString() {
+		return "Query [filter=" + filter + ", ordering=" + ordering + "]";
 	} 
 }

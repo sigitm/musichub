@@ -2,15 +2,12 @@ package it.musichub.server.library;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
-import it.musichub.server.search.QueryOLD;
-import it.musichub.server.search.SearchService;
 
 public class IndexerServiceTest {
 
