@@ -70,7 +70,7 @@ public class SongFactory {
 		}
 		song.setTitle(title);
 		song.setArtist(artist);
-		song.setAlbum(album);
+		song.setAlbumTitle(album);
 		song.setYear(year);
 		song.setTrack(track);
 		song.setGenre(genre);

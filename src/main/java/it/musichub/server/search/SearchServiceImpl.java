@@ -1,8 +1,8 @@
 package it.musichub.server.search;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -22,16 +22,11 @@ import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.library.utils.SmartBeanComparator;
 import it.musichub.server.library.utils.SmartBeanComparator.Order;
+import it.musichub.server.library.utils.SmartComparator;
 import it.musichub.server.runner.MusicHubServiceImpl;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
-import it.musichub.server.search.model.Clause;
-import it.musichub.server.search.model.Clause.LogicalOperator;
-import it.musichub.server.search.model.CompoundClause;
-import it.musichub.server.search.model.QbeClause;
 import it.musichub.server.search.model.Query;
-import it.musichub.server.search.model.SimpleClause;
-import it.musichub.server.search.model.SimpleClause.Operator;
 
 public class SearchServiceImpl extends MusicHubServiceImpl implements SearchService {
 
@@ -78,31 +73,35 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 		jexl = null;
 	}
 	
-	private boolean evaluate(Song song, JexlExpression expr){
+	private static <T> T evaluate(Song song, JexlExpression expr, Class<T> exprClass){
 		// populate the context
 	    JexlContext context = new MapContext();
 	    context.set("song", song);
 
 	    // work it out
-	    boolean result = (boolean) expr.evaluate(context);
+	    T result = (T) expr.evaluate(context);
 	    return result;
 	}
 	
+	private boolean evaluateBoolean(Song song, JexlExpression expr){
+	    return evaluate(song, expr, boolean.class);
+	}
+	
 	@Override
-    public List<Song> execute(Query query){
+    public List<Song> search(Query query){
 		Folder folder = getIndexerService().getStartingFolder();
-    	return execute(query, folder, true);
+    	return search(query, folder, true);
     }
 	
 	@Override
-    public List<Song> execute(Query query, Folder folder, boolean recurse){
+    public List<Song> search(Query query, Folder folder, boolean recurse){
 		
 		// create expression
 		JexlExpression expr = jexl.createExpression(query.getExpression());
     	
 		// visit tree
     	List<Song> searchResult = new ArrayList<Song>();
-    	doVisit(folder, recurse, expr, searchResult);
+    	doSearchVisit(folder, recurse, expr, searchResult);
     	
     	// ordering
     	Map<String, Order> ordering = query.getOrdering();
@@ -119,17 +118,102 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
     	return searchResult;
     }
    
-    private void doVisit(Folder folder, boolean recurse, JexlExpression expr, List<Song> searchResult){
+    private void doSearchVisit(Folder folder, boolean recurse, JexlExpression expr, List<Song> searchResult){
 		if (folder.getSongs() != null){
 			for (Song song : folder.getSongs()) {
-				if (evaluate(song, expr))
+				if (evaluateBoolean(song, expr))
 					searchResult.add(song);
 			}
 		}
 		if (recurse && folder.getFolders() != null){
 			for (Folder child : folder.getFolders())
-				doVisit(child, recurse, expr, searchResult);
+				doSearchVisit(child, recurse, expr, searchResult);
 		}
     }
+    
+    private <T> void doEnumerateVisit(JexlExpression enumExpr, Class<T> enumExprClass, Folder folder, boolean recurse, JexlExpression expr, List<T> enumResult){
+		if (folder.getSongs() != null){
+			for (Song song : folder.getSongs()) {
+				if (evaluateBoolean(song, expr)){
+					T result = evaluate(song, enumExpr, enumExprClass);
+					enumResult.add(result);
+				}
+					
+			}
+		}
+		if (recurse && folder.getFolders() != null){
+			for (Folder child : folder.getFolders())
+				doEnumerateVisit(enumExpr, enumExprClass, child, recurse, expr, enumResult);
+		}
+    }
+    
+    @Override
+    public <T> List<T> enumerate(String expression, Class<T> expressionClass){
+    	return enumerate(expression, expressionClass, Order.asc);
+    }
+    
+    @Override
+    public <T> List<T> enumerate(String expression, Class<T> expressionClass, Order orderType){
+    	Folder folder = getIndexerService().getStartingFolder();
+    	return enumerate(expression, expressionClass, orderType, new Query(), folder, true);
+    }
+    
+    @Override
+    public <T> List<T> enumerate(String expression, Class<T> expressionClass, Order orderType, Query query, Folder folder, boolean recurse){
+    	Comparator<T> comparator = new SmartComparator<T>(orderType != null ? orderType : Order.asc);
+    	List<T> enumResult = enumerate(expression, expressionClass, comparator, query, folder, recurse);
+    	return enumResult;
+    }
+    
+    @Override
+    public <T> List<T> enumerate(String expression, Class<T> expressionClass, Comparator<T> expressionComparator, Query query, Folder folder, boolean recurse){
+    	
+    	//create enumerate expression
+    	JexlExpression enumExpr = jexl.createExpression("song."+expression);
+	 
+		// create expression
+		JexlExpression expr = jexl.createExpression(query.getExpression());
+    	
+		// visit tree
+    	List<T> enumResult = new ArrayList<T>();
+    	doEnumerateVisit(enumExpr, expressionClass, folder, recurse, expr, enumResult);
+    	
+    	// ordering
+   		Collections.sort(enumResult, expressionComparator);
+    	
+    	return enumResult;
+    }
+    
+//    public static void main(String[] args) {
+//    	JexlEngine jexl = new JexlBuilder().cache(512).strict(true).silent(true).create();
+//    	JexlExpression enumExpr = jexl.createExpression("song.rating");
+//    	
+//    	// populate the context EVALUATE
+//    	Song x = new Song();
+//    	x.setArtist("pippo");
+//    	x.setTitle("titolone");
+//    	x.setAlbum("album");
+//    	x.setRating(3);
+//    	
+//	    JexlContext context = new MapContext();
+//	    context.set("song", x);
+//
+//	    // work it out
+//	    Object result = (Object) enumExpr.evaluate(context);
+//	    System.out.println("result="+result+", class="+(result != null ? result.getClass() : "null"));
+//	}
+    
+    public List<Integer> enumerateRatings(Order orderType){
+    	Folder folder = getIndexerService().getStartingFolder();
+    	return enumerateRatings(orderType, new Query(), folder, true);
+    }
+    
+    public List<Integer> enumerateRatings(Order orderType, Query query, Folder folder, boolean recurse){
+    	return enumerate("rating", Integer.class, orderType, query, folder, recurse);
+    }
+    
+    
+    
+    
 	
 }

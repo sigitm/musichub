@@ -11,7 +11,7 @@ import java.util.List;
 public class Folder implements Serializable {
 
 	private File file;
-	private String path;
+	private String path; //KEY
 	private String relativePath;
 	private String name;
 	private List<Song> songs;
@@ -213,6 +213,31 @@ public class Folder implements Serializable {
 	@Override
 	public String toString() {
 		return "Folder [" + name + " (" + relativePath + ")]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((path == null) ? 0 : path.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Folder other = (Folder) obj;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!path.equals(other.path))
+			return false;
+		return true;
 	}
 	
 }

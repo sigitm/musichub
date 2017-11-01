@@ -26,7 +26,7 @@ public class Song implements Serializable {
 	private Boolean id3v2;
 	private String title;
 	private String artist;
-	private String album;
+	private String albumTitle;
 	private Integer year;
 	private String track;
 	private String genre;
@@ -118,11 +118,11 @@ public class Song implements Serializable {
 	public void setArtist(String artist) {
 		this.artist = artist;
 	}
-	public String getAlbum() {
-		return album;
+	public String getAlbumTitle() {
+		return albumTitle;
 	}
-	public void setAlbum(String album) {
-		this.album = album;
+	public void setAlbumTitle(String albumTitle) {
+		this.albumTitle = albumTitle;
 	}
 	public Integer getYear() {
 		return year;
@@ -181,6 +181,10 @@ public class Song implements Serializable {
 			return null;
 		
 		return (length / 3600 > 0) ? getLengthHhMmSs() : getLengthMmSs();
+	}
+	
+	public Album getAlbum(){
+		return new Album(artist, albumTitle, year, genre, albumImage, albumImageMimeType);
 	}
 	
 	public String getId(){

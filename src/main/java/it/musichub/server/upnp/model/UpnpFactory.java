@@ -39,34 +39,34 @@ public class UpnpFactory {
 		return new RendererCommand(cp, (RendererState) rs);
 	}
 
-	@Deprecated
-	public static MusicTrack songToMusicTrack(MediaServer httpServer, Song song) {
-		String album = song.getAlbum();
-		String creator = song.getArtist(); // Required
-		PersonWithRole artist = new PersonWithRole(creator, "Performer");
-		String title = song.getTitle();
-
-		MimeType mimeType = MimeType.valueOf(DLNAProfiles.MP3.getContentFormat());
-
-		EnumMap<DLNAAttribute.Type, DLNAAttribute> attributes = new EnumMap<>(DLNAAttribute.Type.class);
-		attributes.put(Type.DLNA_ORG_OP, new DLNAOperationsAttribute(/*DLNAOperations.TIMESEEK,*/ DLNAOperations.RANGE ));
-	    attributes.put(Type.DLNA_ORG_FLAGS, new DLNAFlagsAttribute(
-	                        DLNAFlags.DLNA_V15, 
-	                        DLNAFlags.CONNECTION_STALL, 
-	                        DLNAFlags.STREAMING_TRANSFER_MODE,
-	                        DLNAFlags.BACKGROUND_TRANSFERT_MODE)
-	    );
-	    DLNAProtocolInfo protocolInfo = new DLNAProtocolInfo(DLNAProfiles.MP3, attributes);
-	    
-		String URI = httpServer.getSongFileUrl(song);
-
-		MusicTrack mt = new MusicTrack(song.getId(), // Item ID,
-				song.getFolder().getId(), // parent Container ID
-				title, creator, album, artist, new Res(protocolInfo, song.getSize(), song.getLengthHhMmSs(),
-						song.getBitrate().longValue(), URI));
-
-		return mt;
-	}
+//	@Deprecated
+//	public static MusicTrack songToMusicTrack(MediaServer httpServer, Song song) {
+//		String album = song.getAlbumTitle();
+//		String creator = song.getArtist(); // Required
+//		PersonWithRole artist = new PersonWithRole(creator, "Performer");
+//		String title = song.getTitle();
+//
+//		MimeType mimeType = MimeType.valueOf(DLNAProfiles.MP3.getContentFormat());
+//
+//		EnumMap<DLNAAttribute.Type, DLNAAttribute> attributes = new EnumMap<>(DLNAAttribute.Type.class);
+//		attributes.put(Type.DLNA_ORG_OP, new DLNAOperationsAttribute(/*DLNAOperations.TIMESEEK,*/ DLNAOperations.RANGE ));
+//	    attributes.put(Type.DLNA_ORG_FLAGS, new DLNAFlagsAttribute(
+//	                        DLNAFlags.DLNA_V15, 
+//	                        DLNAFlags.CONNECTION_STALL, 
+//	                        DLNAFlags.STREAMING_TRANSFER_MODE,
+//	                        DLNAFlags.BACKGROUND_TRANSFERT_MODE)
+//	    );
+//	    DLNAProtocolInfo protocolInfo = new DLNAProtocolInfo(DLNAProfiles.MP3, attributes);
+//	    
+//		String URI = httpServer.getSongFileUrl(song);
+//
+//		MusicTrack mt = new MusicTrack(song.getId(), // Item ID,
+//				song.getFolder().getId(), // parent Container ID
+//				title, creator, album, artist, new Res(protocolInfo, song.getSize(), song.getLengthHhMmSs(),
+//						song.getBitrate().longValue(), URI));
+//
+//		return mt;
+//	}
 
 	public static TrackMetadata songToTrackMetadata(MediaServer httpServer, Song song){
 		String URI = httpServer.getSongFileUrl(song);

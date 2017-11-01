@@ -48,14 +48,23 @@ public class SearchServiceTest {
 		Song s1 = new Song();
 		s1.setArtist("Ligabue");
 		s1.setTitle("Certe notti");
+		s1.setAlbumTitle("Buon compleanno Elvis");
 		s1.setYear(1995);
 		Song s2 = new Song();
 		s2.setArtist("Bryan Adams");
 		s2.setTitle("Summer of '69");
 		s2.setYear(1981);
+		s2.setRating(3);
+		Song s3 = new Song();
+		s3.setArtist("Imagine Dragons");
+		s3.setTitle("Whatever It Takes");
+		s3.setAlbumTitle("Evolve");
+		s3.setYear(2017);
+		s3.setRating(5);
 		
 		f.addSong(s1);
 		f.addSong(s2);
+		f.addSong(s3);
 		
 
 //		Clause c1 = new BasicClause("song.artist.toLowerCase() =~ '^Ligabue$'.toLowerCase()");
@@ -73,7 +82,7 @@ public class SearchServiceTest {
 		Query q4 = new Query();
 		q4.addClause(c4);
 		System.out.println("q4="+q4);
-		List<Song> res1 = ss.execute(q4, f, true);
+		List<Song> res1 = ss.search(q4, f, true);
 		System.out.println("res1="+res1);
 		System.out.println();
 		
@@ -82,9 +91,15 @@ public class SearchServiceTest {
 		System.out.println("c5qbe="+c5);
 		q5.addClause(c5);
 		System.out.println("q5="+q5);
-		List<Song> res2 = ss.execute(q5, f, true);
+		List<Song> res2 = ss.search(q5, f, true);
 		System.out.println("res2="+res2);
 		System.out.println();
+		
+		
+		List<Integer> ratings = ((SearchServiceImpl)ss).enumerateRatings(Order.asc, new Query(), f, true);
+		System.out.println("ratings="+ratings);
+		System.out.println();
+		
 		
 		
 		ss.stop();
