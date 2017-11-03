@@ -95,6 +95,11 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
 	
 	@Override
     public List<Song> search(Query query, Folder folder, boolean recurse){
+		return search(query, folder, recurse, -1, -1);
+	}
+	
+	@Override
+    public List<Song> search(Query query, Folder folder, boolean recurse, int from, int to){
 		
 		// create expression
 		JexlExpression expr = jexl.createExpression(query.getExpression());
@@ -112,10 +117,18 @@ public class SearchServiceImpl extends MusicHubServiceImpl implements SearchServ
     		Collections.sort(searchResult, new SmartBeanComparator(field, orderType));
     	}
     	
+    	//pagination
+    	List<Song> result = null;
+    	if (from >= 0 && to >= 0){
+    		result = searchResult.subList(from, to+1); //TODO XXXXX gestire i casi di indexoutofbound? //TODO XXX usare la PaginatedList?
+    	}else{
+    		result = searchResult;
+    	}
+    	
     	//TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXX clonare le songs!! altrimenti arrivano tutti i rami!
     	
     	
-    	return searchResult;
+    	return result;
     }
    
     private void doSearchVisit(Folder folder, boolean recurse, JexlExpression expr, List<Song> searchResult){

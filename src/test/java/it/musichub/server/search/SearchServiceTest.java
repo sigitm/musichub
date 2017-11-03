@@ -96,7 +96,7 @@ public class SearchServiceTest {
 		System.out.println();
 		
 		
-		List<Integer> ratings = ((SearchServiceImpl)ss).enumerateRatings(Order.asc, new Query(), f, true);
+		List<Integer> ratings = ((SearchServiceImpl)ss).enumerateRatings(Order.desc, new Query(), f, true);
 		System.out.println("ratings="+ratings);
 		System.out.println();
 		

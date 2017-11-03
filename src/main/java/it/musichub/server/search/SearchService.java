@@ -14,6 +14,7 @@ public interface SearchService extends IMusicHubService {
 
     public List<Song> search(Query query);
     public List<Song> search(Query query, Folder folder, boolean recurse);
+    public List<Song> search(Query query, Folder folder, boolean recurse, int from, int to);
     
     public <T> List<T> enumerate(String expression, Class<T> expressionClass);
     public <T> List<T> enumerate(String expression, Class<T> expressionClass, Order orderType);
