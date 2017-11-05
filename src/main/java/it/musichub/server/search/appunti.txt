@@ -1,4 +1,3 @@
-allo start: visita di popolamento mappe
 
 
 SU BUBBLEUPNP:
@@ -31,27 +30,15 @@ Random tracks
 MIA PROPOSTA:
 aggiungere: Recently Modified
 
-
-TODO XXXXXXXXXXX fare degli esempi (predisporli come predefiniti?): es. Rating, Artist, Album (l'oggetto nuovo), Recently Modified... 
-
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXX sistemare l'ordine del null (UTILE ANCHE PER IL LAVORO) v.SearchServiceTest
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+dò gli strumenti per implementare i menù in stile in stile bubbleUPNP: search + enumerate
+es.:
+Date: enumerateYears()
+	Albums: enumerateAlbums(query:year=XXXX) --> Items: search(query:year=XXXX&&album=YYYY) 
+	Items: search(query:year=XXXX)
+	Artist: enumerateArtists(query:year=XXXX) --> Items: search(query:year=XXXX&&artist=ZZZZ)
 
 
-enumerate(String expression, Query query)
-
-es. enumerate("lastModified", query) dove query contiene l'ordinamento per "lastModified desc"
 
 
 
 NOTA: Album può anche essere [no album] ma quello lo rappresento come null
-
-
-
-OFF TOPIC
-sistemare le query

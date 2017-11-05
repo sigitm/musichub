@@ -184,6 +184,8 @@ public class Song implements Serializable {
 	}
 	
 	public Album getAlbum(){
+		if (albumTitle == null)
+			return null;
 		return new Album(artist, albumTitle, year, genre, albumImage, albumImageMimeType);
 	}
 	

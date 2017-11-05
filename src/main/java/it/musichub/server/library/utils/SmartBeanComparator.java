@@ -83,7 +83,7 @@ public class SmartBeanComparator<T extends Serializable> implements Comparator<T
 	
 	private void setComparator(Comparator<T> comparator){
 		this.comparator = comparator;
-		this.nullComparator = new NullComparator(this.comparator, order == Order.asc); //come SQL: ASC->nulls last; DESC->nulls first. 
+		this.nullComparator = new NullComparator(this.comparator, false); //come SQL: ASC->nulls last; DESC->nulls first. 
 	}
 
 	public Order getOrder() {

@@ -1,8 +1,11 @@
 package it.musichub.server.library.model;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
-public class Album implements Serializable {
+import it.musichub.server.library.utils.SmartComparator;
+
+public class Album implements Serializable, Comparable<Album> {
 
 	//KEYS
 	private String artist;
@@ -102,4 +105,25 @@ public class Album implements Serializable {
 		result = prime * result + ((title == null) ? 0 : title.hashCode());
 		return result;
 	}
+
+	@Override
+	public int compareTo(Album o) {
+		if (o == null)
+			return -1;
+		
+		Comparator<String> comp = new SmartComparator<>();
+
+		int compare = comp.compare(artist, o.getArtist());
+		if (compare == 0)
+			compare = comp.compare(title, o.getTitle());
+		
+		return compare;
+	}
+
+	@Override
+	public String toString() {
+		return "Album [artist=" + artist + ", title=" + title + ", year=" + year + ", genre=" + genre + "]";
+	}
+	
+	
 }
