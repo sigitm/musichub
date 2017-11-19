@@ -5,12 +5,13 @@ import java.util.Map;
 
 import it.musichub.server.library.IndexerServiceImpl;
 import it.musichub.server.persistence.PersistenceEngine;
+import it.musichub.server.rest.RestServiceImpl;
 import it.musichub.server.search.SearchServiceImpl;
 import it.musichub.server.upnp.UpnpControllerServiceImpl;
 
 public class ServiceRegistry {
 
-	public static enum Service {persistence, indexer, search, upnpcontroller, ws}
+	public static enum Service {persistence, indexer, search, upnpcontroller, rest}
 	
 	protected static Map<Service,ServiceDefinition> serviceMap = new LinkedHashMap<Service,ServiceDefinition>(){{
 		/**
@@ -19,7 +20,8 @@ public class ServiceRegistry {
 		 * persistence: none
 		 * indexer: persistence
 		 * search: indexer
-		 * upnpcontrol: persistence, indexer
+		 * upnpcontroller: persistence, indexer
+		 * rest: ????????????????????????????????????
 		 */
 		put(Service.persistence, new ServiceDefinition(PersistenceEngine.class));
 		put(Service.indexer, new ServiceDefinition(IndexerServiceImpl.class){{
@@ -27,6 +29,7 @@ public class ServiceRegistry {
 		}});
 		put(Service.search, new ServiceDefinition(SearchServiceImpl.class));
 		put(Service.upnpcontroller, new ServiceDefinition(UpnpControllerServiceImpl.class));
+		put(Service.rest, new ServiceDefinition(RestServiceImpl.class));
 	}};
 	
 	protected static class ServiceDefinition {
