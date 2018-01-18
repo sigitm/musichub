@@ -23,7 +23,7 @@ import it.musichub.server.ex.ServiceDestroyException;
 import it.musichub.server.ex.ServiceInitException;
 import it.musichub.server.ex.ServiceStartException;
 import it.musichub.server.ex.ServiceStopException;
-import it.musichub.server.persistence.PersistenceEngine;
+import it.musichub.server.persistence.PersistenceServiceImpl;
 import it.musichub.server.persistence.PersistenceService;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
@@ -56,7 +56,7 @@ public class ServiceFactory {
 	private static ServiceFactory instance = null;
 	
 	private Configuration config;
-	private PersistenceService configPers = new PersistenceEngine();
+	private PersistenceService configPers = new PersistenceServiceImpl();
 	
 	private Map<String,Object> params = new HashMap<>();
 	

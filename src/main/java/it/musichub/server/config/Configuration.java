@@ -42,6 +42,14 @@ public class Configuration implements Serializable {
 	private Integer mediaHttpPort = 9000;
 	
 	/*
+	 * rest
+	 */
+	@Required
+	private Integer restHttpPort = 8080;
+	
+
+
+	/*
 	 * GETTERS & SETTERS
 	 */
 	public Integer getAutoSleepTime() {
@@ -90,6 +98,14 @@ public class Configuration implements Serializable {
 
 	public void setMediaHttpPort(Integer mediaHttpPort) {
 		this.mediaHttpPort = mediaHttpPort;
+	}
+	
+	public Integer getRestHttpPort() {
+		return restHttpPort;
+	}
+
+	public void setRestHttpPort(Integer restHttpPort) {
+		this.restHttpPort = restHttpPort;
 	}
 		
 }

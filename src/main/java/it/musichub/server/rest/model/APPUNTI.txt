@@ -1,0 +1,40 @@
+GESTIONE FIELDS:
+(rivedere https://developers.facebook.com/docs/graph-api/using-graph-api )
+policy:
+
+@InclusionPolicy(alwaysInclude)  ---> id
+--@InclusionPolicy(alwaysExclude)
+--@InclusionPolicy(defaultInclude)
+@InclusionPolicy(defaultExclude) --->
+
+
+come fa l'utente a sapere quali campi ci sono? metadata = 1 ???????
+
+[[versione più semplice]]: se fields non è specificato, restituisco sempre tutto. se fields è specificato, restituisco solo i campi specificati più quelli alwaysInclude (unica annotation disponibile: @AlwaysInclude)
+
+LEGGERE:
+https://stackoverflow.com/questions/4802887/gson-how-to-exclude-specific-fields-from-serialization-without-annotations
+
+------
+GESTIONE PAGINAZIONE (solo per le songs?)
+timered cache: per memorizzare le ricerche
+
+e se supportassi sempre il limit quando il dato da convertire è una Collection? scelgo se attivare il paging in base alla presenza del limit
+
+il paging è un po' diverso da quello di fb
+
+
+limit=5
+start=0
+
+_links (map)
+- prev
+- next
+- self
+- total
+results (lista)
+ - ...
+ - ...
+
+
+

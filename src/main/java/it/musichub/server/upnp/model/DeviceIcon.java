@@ -5,6 +5,7 @@ import java.net.URI;
 
 public class DeviceIcon implements Serializable {
 
+	private String filename;
 	private String mimeType;
 	private int width;
 	private int height;
@@ -12,14 +13,19 @@ public class DeviceIcon implements Serializable {
 	private URI uri;
 	private byte[] data;
 	
-	public DeviceIcon(String mimeType, int width, int height, int depth, URI uri, byte[] data) {
+	public DeviceIcon(String filename, String mimeType, int width, int height, int depth, URI uri, byte[] data) {
 		super();
+		this.filename = filename;
 		this.mimeType = mimeType;
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
 		this.uri = uri;
 		this.data = data;
+	}
+
+	public String getFilename() {
+		return filename;
 	}
 
 	public String getMimeType() {
@@ -48,7 +54,7 @@ public class DeviceIcon implements Serializable {
 
 	@Override
 	public String toString() {
-		return "DeviceIcon [mimeType=" + mimeType + ", width=" + width + ", height=" + height + ", depth=" + depth
+		return "DeviceIcon [filename=" + filename + ", mimeType=" + mimeType + ", width=" + width + ", height=" + height + ", depth=" + depth
 				+ "]";
 	}
 	

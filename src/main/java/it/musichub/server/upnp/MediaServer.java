@@ -18,8 +18,6 @@ import org.apache.log4j.Logger;
 import org.seamless.util.MimeType;
 
 import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.NanoHTTPD.Response;
-import it.musichub.server.config.Configuration;
 import it.musichub.server.library.IndexerService;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.FolderFactory;

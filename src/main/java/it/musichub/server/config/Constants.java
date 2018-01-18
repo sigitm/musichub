@@ -23,17 +23,15 @@ public class Constants implements Serializable {
 	public static final String LIBRARY_FILE_NAME = "library.xml";
 
 	/*
-	 * upnp generic
+	 * upnpcontroller
 	 */
-
-	public final static String UPNP_DEVICE_TYPE = "MediaRenderer";
-	public final static String UPNP_SERVICE_TYPE_AVTRANSPORT = "AVTransport";
-	public final static String UPNP_SERVICE_TYPE_RENDERINGCONTROL = "RenderingControl";
-	
-	/*
-	 * upnpdiscovery
-	 */
+	public static final String UPNP_DEVICE_TYPE = "MediaRenderer";
+	public static final String UPNP_SERVICE_TYPE_AVTRANSPORT = "AVTransport";
+	public static final String UPNP_SERVICE_TYPE_RENDERINGCONTROL = "RenderingControl";
 	public static final String REGISTRY_FILE_NAME = "devices.xml";
 	
-	
+	/*
+	 * rest
+	 */
+	public static final int DEFAULT_JSON_PAGINATION_LIMIT = 5;
 }

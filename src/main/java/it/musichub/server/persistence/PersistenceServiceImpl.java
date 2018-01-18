@@ -27,7 +27,7 @@ import it.musichub.server.upnp.model.DeviceIcon;
 import it.musichub.server.upnp.model.DeviceRegistry;
 import it.musichub.server.upnp.model.DeviceService;
 
-public class PersistenceEngine extends MusicHubServiceImpl implements PersistenceService {
+public class PersistenceServiceImpl extends MusicHubServiceImpl implements PersistenceService {
 	
 	/*
 	 * EVOLUZIONI:
@@ -37,9 +37,9 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 	
 	private XStream xstream;
 	
-	private final static Logger logger = Logger.getLogger(PersistenceEngine.class);
+	private final static Logger logger = Logger.getLogger(PersistenceServiceImpl.class);
 	
-	public PersistenceEngine() {
+	public PersistenceServiceImpl() {
 		super();
 	}
 	
@@ -58,6 +58,7 @@ public class PersistenceEngine extends MusicHubServiceImpl implements Persistenc
 //		xstream.addPermission(AnyTypePermission.ANY);
 		xstream.alias("folder", Folder.class);
 		xstream.alias("song", Song.class);
+		xstream.omitField(Song.class, "album");
 		
 		init = true;
 	}

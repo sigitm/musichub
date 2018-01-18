@@ -6,14 +6,19 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.fourthline.cling.DefaultUpnpServiceConfiguration;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
+import org.fourthline.cling.model.Namespace;
 import org.fourthline.cling.model.message.header.UDADeviceTypeHeader;
 import org.fourthline.cling.model.meta.LocalDevice;
 import org.fourthline.cling.model.meta.RemoteDevice;
 import org.fourthline.cling.model.types.UDADeviceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
+import org.fourthline.cling.transport.spi.NetworkAddressFactory;
+import org.fourthline.cling.transport.spi.StreamClient;
+import org.fourthline.cling.transport.spi.StreamServer;
 
 import fi.iki.elonen.NanoHTTPD;
 import it.musichub.server.config.Constants;
@@ -124,6 +129,34 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 		logger.info("... registry saved.");
 	}
 	
+	private class MyUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+
+//	    @Override
+//	    protected Namespace createNamespace() {
+//	        return new Namespace("/upnp"); // This will be the servlet context path
+//	    }
+
+//	    @Override
+//	    public StreamClient createStreamClient() {
+//	        return new org.fourthline.cling.transport.impl.jetty.StreamClientImpl(
+//	            new org.fourthline.cling.transport.impl.jetty.StreamClientConfigurationImpl(
+//	                getSyncProtocolExecutorService()
+//	            )
+//	        );
+//	    }
+
+//	    @Override
+//	    public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
+//	        return new org.fourthline.cling.transport.impl.AsyncServletStreamServerImpl(
+//	            new org.fourthline.cling.transport.impl.AsyncServletStreamServerConfigurationImpl(
+//	                org.fourthline.cling.transport.impl.jetty.JettyServletContainer.INSTANCE,
+//	                networkAddressFactory.getStreamListenPort()
+//	            )
+//	        );
+//	    }
+
+	}
+	
 	@Override
 	public void init() throws ServiceInitException {
 		//init registry
@@ -134,7 +167,7 @@ public class UpnpControllerServiceImpl extends MusicHubServiceImpl implements Up
 		
 		//creating UPnP discovery with a callback
 		RegistryListener listener = new MediaRenderersListener();
-		upnpService = new UpnpServiceImpl(listener);
+		upnpService = new UpnpServiceImpl(new MyUpnpServiceConfiguration(), listener);
 		
 		//creating renderer state and command
 		rendererState = UpnpFactory.createRendererState();

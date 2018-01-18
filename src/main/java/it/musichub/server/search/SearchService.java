@@ -1,13 +1,11 @@
 package it.musichub.server.search;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import it.musichub.server.library.model.Album;
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
-import it.musichub.server.library.utils.SmartComparator;
 import it.musichub.server.library.utils.SmartBeanComparator.Order;
 import it.musichub.server.runner.IMusicHubService;
 import it.musichub.server.search.model.Clause;

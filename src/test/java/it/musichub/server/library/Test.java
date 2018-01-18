@@ -32,6 +32,7 @@ public class Test {
 		ServiceFactory sf = ServiceFactory.getInstance();
 		sf.init();
 		sf.getConfiguration().setContentDir(startingDirStr);
+		sf.getConfiguration().setRestHttpPort(8080); //TODO XXXX RIMUOVERE dovrebbe prendere il default
 		sf.start();
 		
 //		try {
