@@ -21,7 +21,7 @@ contact = @Contact(name = "Sigi"/*, url = "https://www.sigitm.com"*/) ) , //
 schemes = { SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS }, //
 /*consumes = { "application/json" }, //*/
 produces = { "application/json" }, //
-tags = { @Tag(name = "swagger") })
+tags = { @Tag(name = "devices", description = "Handling listening device") })
 public class RestApp {
 
 	private Integer port;

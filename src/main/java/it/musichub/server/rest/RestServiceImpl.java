@@ -12,6 +12,13 @@ import it.musichub.server.runner.MusicHubServiceImpl;
 public class RestServiceImpl extends MusicHubServiceImpl implements RestService {
 
 	/**
+	 * 
+	 * TODO VARI:
+	 * - TODO XXX gestione dei fields custom (v. mongodb) e dell'ordinamento (v. mongodb)
+	 * - TODO XXX gestione dei filtri (stile filtro qbe)
+	 * 
+	 * 
+	 * 
 	 * requirements di spark da verificare:
 	 * - 
 	 * - basic auth https://github.com/qmetric/spark-authentication OPPURE https://github.com/pac4j/spark-pac4j
