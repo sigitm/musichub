@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiResponses;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.DeviceDto;
-import it.musichub.server.rest.model.DeviceDtoList;
 import it.musichub.server.rest.model.RestDeviceMapper;
 import it.musichub.server.upnp.model.Device;
 import spark.Request;
@@ -23,10 +22,10 @@ import spark.Response;
 @Api
 @Path("/devices/selected")
 @Produces("application/json")
-public class UnselectedDevice extends AbstractRoute {
+public class DeselectDevice extends AbstractRoute {
 
 	@DELETE
-	@ApiOperation(value = "Clear current selected device", nickname = "UnselectedDevice", tags = "devices")
+	@ApiOperation(value = "Clear current selected device", nickname = "DeselectDevice", tags = "devices")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
 		    @ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path") //
@@ -51,6 +50,11 @@ public class UnselectedDevice extends AbstractRoute {
 		DeviceDto deviceDto = RestDeviceMapper.toDto(device);
 		
 		return deviceDto;
+	}
+	
+	@Override
+	public int getOrder(){
+		return -1;
 	}
 	
 }

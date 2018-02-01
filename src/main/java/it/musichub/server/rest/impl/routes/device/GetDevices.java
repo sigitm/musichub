@@ -47,7 +47,7 @@ public class GetDevices extends AbstractRoute {
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
 //			@ApiResponse(code = 404, message = "User not found", response = ApiError.class) //
 	})
-	public DeviceDtoList handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
+	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
 		String paramCustomName = request.queryParams("customName");
 		String paramOnline = request.queryParams("online");
 		
@@ -67,7 +67,7 @@ public class GetDevices extends AbstractRoute {
 		String url = request.url()+"?"+request.queryString();
 		Integer[] paginationParams = getPaginationParams(request);
 		
-		return (DeviceDtoList)ListPaginator.paginateList(filteredDevicesDto, url, paginationParams[0], paginationParams[1]);
+		return ListPaginator.paginateList(filteredDevicesDto, url, paginationParams[0], paginationParams[1]);
 	}
 	
 }

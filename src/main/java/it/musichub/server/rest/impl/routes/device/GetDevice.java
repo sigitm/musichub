@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiResponses;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.DeviceDto;
-import it.musichub.server.rest.model.DeviceDtoList;
 import it.musichub.server.rest.model.RestDeviceMapper;
 import it.musichub.server.upnp.ex.DeviceNotFoundException;
 import it.musichub.server.upnp.model.Device;

@@ -1,6 +1,7 @@
 package it.musichub.server.rest.impl;
 
 import static spark.Spark.before;
+import static spark.Spark.after;
 import static spark.Spark.get;
 import static spark.Spark.port;
 
@@ -17,8 +18,9 @@ import spark.Spark;
 info = @Info(description = "MusicHub API", //
 version = "V1.0", //
 title = "API for MusicHub REST Service", //
-contact = @Contact(name = "Sigi"/*, url = "https://www.sigitm.com"*/) ) , //
-schemes = { SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS }, //
+contact = @Contact(name = "Sigi", url = "http://www.sigitm.com") ) , //
+schemes = { SwaggerDefinition.Scheme.HTTP/*, SwaggerDefinition.Scheme.HTTPS*/ }, //
+host = "localhost:8080",
 /*consumes = { "application/json" }, //*/
 produces = { "application/json" }, //
 tags = { @Tag(name = "devices", description = "Handling listening device") })
@@ -51,6 +53,9 @@ public class RestApp {
 		//Spark uses filters to intercept any route, lets add a filter for "before"
 		//we need to register a Filter that sets the JSON Content-Type.
         before((request, response) -> response.type("application/json"));
+        
+        //GZIP everything
+        after((request, response) -> response.header("Content-Encoding", "gzip"));
 	}
 	
 	public void start() {

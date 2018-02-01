@@ -51,4 +51,9 @@ public class GetSelectedDevice extends AbstractRoute {
 		return deviceDto;
 	}
 	
+	@Override
+	public int getOrder(){
+		return -1;
+	}
+	
 }
