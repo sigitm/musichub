@@ -10,6 +10,7 @@ import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 
+import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.model.Device;
 
 public class RestDeviceMapper {
@@ -47,14 +48,14 @@ public class RestDeviceMapper {
 //		return getModelMapper().map(dto, Device.class);
 //	}
 	
-	public static DeviceDto toDto(Device model){
+	public static DeviceDto toDeviceDto(Device model){
 		return getModelMapper().map(model, DeviceDto.class);
 	}
 	
-	public static List<DeviceDto> toDto(List<Device> models){
+	public static List<DeviceDto> toDeviceDto(List<Device> models){
 		List<DeviceDto> modelsDto = new ArrayList<>();
 		for (Device model : models)
-			modelsDto.add(toDto(model));
+			modelsDto.add(toDeviceDto(model));
 		return modelsDto;
 	}
 	
@@ -62,14 +63,32 @@ public class RestDeviceMapper {
 //		return getModelMapper().map(model, DeviceIconDto.class);
 //	}
 	
+	public static SongDto toSongDto(Song model){
+		return getModelMapper().map(model, SongDto.class);
+	}
+	
+	public static List<SongDto> toSongDto(List<Song> models){
+		List<SongDto> modelsDto = new ArrayList<>();
+		for (Song model : models)
+			modelsDto.add(toSongDto(model));
+		return modelsDto;
+	}
+	
 	private static ModelMapper getModelMapper(){
 		ModelMapper modelMapper = new ModelMapper();
 		PropertyMap<Device, DeviceDto> deviceOrderMap = new PropertyMap<Device, DeviceDto>() {
 			  protected void configure() {
 			    map().setId(source.getUdn());
 			  }
-			};
+		};
 		modelMapper.addMappings(deviceOrderMap);
+		PropertyMap<Song, SongDto> songOrderMap = new PropertyMap<Song, SongDto>() {
+			  protected void configure() {
+			    map().setFolderName(source.getFolder().getName()); //TODO XXXX serviva o ci arrivava da solo?
+			    map().setAlbumTitle(source.getAlbumTitle());
+			  }
+		};
+		modelMapper.addMappings(songOrderMap);
 		Converter<byte[], String> toBase64 = new AbstractConverter<byte[], String>() {
 			  protected String convert(byte[] source) {
 			    return source == null ? null : DatatypeConverter.printBase64Binary(source);

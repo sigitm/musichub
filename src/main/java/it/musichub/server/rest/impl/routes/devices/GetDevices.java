@@ -1,4 +1,4 @@
-package it.musichub.server.rest.impl.routes.device;
+package it.musichub.server.rest.impl.routes.devices;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ import spark.utils.StringUtils;
 public class GetDevices extends AbstractRoute {
 
 	@GET
-	@ApiOperation(value = "Gets all devices", nickname = "GetDevices", tags = "devices")
+	@ApiOperation(value = "Get all devices", nickname = "GetDevices", tags = "devices")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
 			@ApiImplicitParam(required = false, dataType = "string", name = "customName", paramType = "query"), //
@@ -52,7 +52,7 @@ public class GetDevices extends AbstractRoute {
 		String paramOnline = request.queryParams("online");
 		
 		List<Device> devices = getUpnpControllerService().getDevices();
-		List<DeviceDto> devicesDto = RestDeviceMapper.toDto(devices);
+		List<DeviceDto> devicesDto = RestDeviceMapper.toDeviceDto(devices);
 		
 		List<DeviceDto> filteredDevicesDto = new ArrayList<>();
 		for (DeviceDto device : devicesDto){
@@ -64,10 +64,8 @@ public class GetDevices extends AbstractRoute {
 			filteredDevicesDto.add(device);
 		}
 		
-		String url = request.url()+"?"+request.queryString();
 		Integer[] paginationParams = getPaginationParams(request);
-		
-		return ListPaginator.paginateList(filteredDevicesDto, url, paginationParams[0], paginationParams[1]);
+		return ListPaginator.paginateList(filteredDevicesDto, getUrl(request), paginationParams[0], paginationParams[1]);
 	}
 	
 }

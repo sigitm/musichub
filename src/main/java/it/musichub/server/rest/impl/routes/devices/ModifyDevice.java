@@ -1,7 +1,5 @@
-package it.musichub.server.rest.impl.routes.device;
+package it.musichub.server.rest.impl.routes.devices;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -12,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.jaxrs.PATCH;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.DeviceDto;
@@ -24,22 +23,29 @@ import spark.Response;
 @Api
 @Path("/devices/{id}")
 @Produces("application/json")
-public class SelectDevice extends AbstractRoute {
+public class ModifyDevice extends AbstractRoute {
 
-	@PUT
-	@ApiOperation(value = "Set a device selected", nickname = "SelectDevice", tags = "devices")
+	@PATCH
+	@ApiOperation(value = "Modify a device", nickname = "ModifyDevice", tags = "devices")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
-		    @ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path") //
+		    @ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path"), //
+		    @ApiImplicitParam(required = false, dataType = "string", name = "customName", paramType = "query") //
 	}) //
 	@ApiResponses(value = { //
 			@ApiResponse(code = 200, message = "Success", response = DeviceDto.class), //
-//			@ApiResponse(code = 400, message = "Invalid input data", response = ApiError.class), //
+			@ApiResponse(code = 400, message = "Invalid input data", response = ApiError.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
 			@ApiResponse(code = 404, message = "Device not found", response = ApiError.class) //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
 		String id = request.params("id");
+		boolean isParamCustomName = request.queryParams().contains("customName");
+		if (!isParamCustomName){
+			response.status(400);
+			return new ApiError(response.status(), "Custom name not specified");
+		}
+		String paramCustomName = request.queryParams("customName");
 		
 		Device device = null;
 		try {
@@ -51,10 +57,9 @@ public class SelectDevice extends AbstractRoute {
 			response.status(404);
 			return new ApiError(response.status(), "Device not found");
 		}
+		getUpnpControllerService().setDeviceCustomName(device.getUdn(), paramCustomName);
 			
-		getUpnpControllerService().setSelectedDevice(device);
-		
-		DeviceDto deviceDto = RestDeviceMapper.toDto(device);
+		DeviceDto deviceDto = RestDeviceMapper.toDeviceDto(device);
 		
 		return deviceDto;
 	}

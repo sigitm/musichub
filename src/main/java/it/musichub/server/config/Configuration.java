@@ -12,7 +12,7 @@ public class Configuration implements Serializable {
 	/**
 	 * Specifies the auto shutdown time (optional)
 	 */
-	private Integer autoSleepTime = 600;
+	private Integer autoSleepTime = 1200;
 
 	/**
 	 * Activates the verbose mode.

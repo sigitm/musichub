@@ -1,6 +1,7 @@
-package it.musichub.server.rest.impl.routes.device;
+package it.musichub.server.rest.impl.routes.devices;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -14,7 +15,6 @@ import io.swagger.annotations.ApiResponses;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.DeviceDto;
-import it.musichub.server.rest.model.DeviceDtoList;
 import it.musichub.server.rest.model.RestDeviceMapper;
 import it.musichub.server.upnp.ex.DeviceNotFoundException;
 import it.musichub.server.upnp.model.Device;
@@ -22,12 +22,12 @@ import spark.Request;
 import spark.Response;
 
 @Api
-@Path("/devices/selected")
+@Path("/devices/selected/{id}")
 @Produces("application/json")
-public class GetSelectedDevice extends AbstractRoute {
+public class SetSelectedDevice extends AbstractRoute {
 
-	@GET
-	@ApiOperation(value = "Gets current selected device", nickname = "GetSelectedDevice", tags = "devices")
+	@PUT
+	@ApiOperation(value = "Set a device selected", nickname = "SelectDevice", tags = "devices")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
 		    @ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path") //
@@ -36,24 +36,27 @@ public class GetSelectedDevice extends AbstractRoute {
 			@ApiResponse(code = 200, message = "Success", response = DeviceDto.class), //
 //			@ApiResponse(code = 400, message = "Invalid input data", response = ApiError.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
-			@ApiResponse(code = 404, message = "No device selected", response = ApiError.class) //
+			@ApiResponse(code = 404, message = "Device not found", response = ApiError.class) //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
-
-		Device device = getUpnpControllerService().getSelectedDevice();
+		String id = request.params("id");
+		
+		Device device = null;
+		try {
+			device = getUpnpControllerService().getDevice(id);
+		} catch (DeviceNotFoundException e){
+			//Nothing to do
+		}
 		if (device == null){
 			response.status(404);
-			return new ApiError(response.status(), "No device selected");
+			return new ApiError(response.status(), "Device not found");
 		}
 			
-		DeviceDto deviceDto = RestDeviceMapper.toDto(device);
+		getUpnpControllerService().setSelectedDevice(device);
+		
+		DeviceDto deviceDto = RestDeviceMapper.toDeviceDto(device);
 		
 		return deviceDto;
-	}
-	
-	@Override
-	public int getOrder(){
-		return -1;
 	}
 	
 }

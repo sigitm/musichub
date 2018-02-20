@@ -23,7 +23,10 @@ schemes = { SwaggerDefinition.Scheme.HTTP/*, SwaggerDefinition.Scheme.HTTPS*/ },
 host = "localhost:8080",
 /*consumes = { "application/json" }, //*/
 produces = { "application/json" }, //
-tags = { @Tag(name = "devices", description = "Handling listening device") })
+tags = {
+		@Tag(name = "songs", description = "Search for songs"), 
+		@Tag(name = "devices", description = "Handle playback devices")
+		})
 public class RestApp {
 
 	private Integer port;

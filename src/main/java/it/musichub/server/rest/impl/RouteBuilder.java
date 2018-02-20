@@ -22,8 +22,8 @@ import org.reflections.Reflections;
 import io.swagger.annotations.Api;
 import it.musichub.server.library.utils.SmartBeanComparator;
 import it.musichub.server.library.utils.SmartBeanComparator.Order;
-import it.musichub.server.rest.impl.routes.device.GetDevice;
-import it.musichub.server.rest.impl.routes.device.GetSelectedDevice;
+import it.musichub.server.rest.impl.routes.devices.GetDevice;
+import it.musichub.server.rest.impl.routes.devices.GetSelectedDevice;
 import spark.Route;
 
 public class RouteBuilder {
