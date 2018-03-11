@@ -2,7 +2,7 @@ package it.musichub.server.rest.impl.routes.songs;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -14,46 +14,52 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import it.musichub.server.library.model.Song;
-import it.musichub.server.rest.ListPaginator;
 import it.musichub.server.rest.impl.AbstractRoute;
+import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.RestDtoMapper;
 import it.musichub.server.rest.model.SongDto;
-import it.musichub.server.rest.model.SongDtoList;
 import it.musichub.server.search.model.Query;
+import it.musichub.server.search.model.SimpleClause;
+import it.musichub.server.search.model.SimpleClause.Operator;
 import spark.Request;
 import spark.Response;
 
 @Api
-@Path("/songs")
+@Path("/songs/{id}")
 @Produces("application/json")
-public class GetSongs extends AbstractRoute {
+public class AddSongToPlaylist extends AbstractRoute {
 
-	@GET
-	@ApiOperation(value = "Get songs", nickname = "GetSongs", tags = "songs")
+	@PUT
+	@ApiOperation(value = "Add a song to new Playlist", nickname = "AddSongToPlaylist", tags = "songs")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "title", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "artist", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "albumTitle", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "integer", name = "year", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "genre", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "integer", name = "rating", paramType = "query"), //
+		    @ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path") //
 	}) //
 	@ApiResponses(value = { //
-			@ApiResponse(code = 200, message = "Success", response = SongDtoList.class), //
+			@ApiResponse(code = 200, message = "Success", response = SongDto.class), //
 //			@ApiResponse(code = 400, message = "Invalid input data", response = ApiError.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
-//			@ApiResponse(code = 404, message = "User not found", response = ApiError.class) //
+			@ApiResponse(code = 404, message = "Device not found", response = ApiError.class) //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
+		String id = request.params("id");
+		
 		Query query = new Query();
-		query.addClause(encodeSongParams(request));
+		query.addClause(new SimpleClause("id", Operator.EQUALS, id));
 		
 		List<Song> songs = getSearchService().search(query);
-		List<SongDto> songsDto = RestDtoMapper.toSongDto(songs);
+		if (songs.isEmpty()){
+			response.status(404);
+			return new ApiError(response.status(), "Song not found");
+		}
 		
-		Integer[] paginationParams = getPaginationParams(request);
-		return ListPaginator.paginateList(songsDto, getUrl(request), paginationParams[0], paginationParams[1]);
+		Song song = songs.get(0);
+		SongDto songDto = RestDtoMapper.toSongDto(song);
+		
+		getUpnpControllerService().getRendererState().getPlaylist().clear();
+		getUpnpControllerService().getRendererState().getPlaylist().addSong(song);
+		
+		return songDto;
 	}
 	
 }

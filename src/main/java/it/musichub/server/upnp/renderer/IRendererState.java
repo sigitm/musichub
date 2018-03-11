@@ -1,5 +1,6 @@
 package it.musichub.server.upnp.renderer;
 
+import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.model.IPlaylistState;
 
 public interface IRendererState {
@@ -26,5 +27,6 @@ public interface IRendererState {
 	long getDurationSeconds();
 	String getTitle();
 	String getArtist();
+	Song getCurrentSong();
 
 }

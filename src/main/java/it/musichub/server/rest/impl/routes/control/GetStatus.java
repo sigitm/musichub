@@ -1,0 +1,42 @@
+package it.musichub.server.rest.impl.routes.control;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import it.musichub.server.rest.impl.AbstractRoute;
+import it.musichub.server.rest.model.ControlStatusDto;
+import it.musichub.server.rest.model.RestDtoMapper;
+import it.musichub.server.upnp.renderer.IRendererState;
+import spark.Request;
+import spark.Response;
+
+@Api
+@Path("/control")
+@Produces("application/json")
+public class GetStatus extends AbstractRoute {
+
+	@GET
+	@ApiOperation(value = "Get control status", nickname = "GetStatus", tags = "control")
+	@ApiImplicitParams({ //
+//			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
+	}) //
+	@ApiResponses(value = { //
+			@ApiResponse(code = 200, message = "Success", response = ControlStatusDto.class), //
+//			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
+	})
+	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
+		
+		IRendererState rs = getUpnpControllerService().getRendererState();
+		ControlStatusDto controlStatusDto = RestDtoMapper.toControlStatusDto(rs);
+		
+		return controlStatusDto;
+	}
+	
+}

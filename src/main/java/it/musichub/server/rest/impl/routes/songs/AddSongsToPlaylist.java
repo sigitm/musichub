@@ -2,7 +2,7 @@ package it.musichub.server.rest.impl.routes.songs;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -26,10 +26,10 @@ import spark.Response;
 @Api
 @Path("/songs")
 @Produces("application/json")
-public class GetSongs extends AbstractRoute {
+public class AddSongsToPlaylist extends AbstractRoute {
 
-	@GET
-	@ApiOperation(value = "Get songs", nickname = "GetSongs", tags = "songs")
+	@PUT
+	@ApiOperation(value = "Add songs to new Playlist", nickname = "AddSongsToPlaylist", tags = "songs")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
 			@ApiImplicitParam(required = false, dataType = "string", name = "title", paramType = "query"), //
@@ -51,6 +51,12 @@ public class GetSongs extends AbstractRoute {
 		
 		List<Song> songs = getSearchService().search(query);
 		List<SongDto> songsDto = RestDtoMapper.toSongDto(songs);
+		
+		getUpnpControllerService().getRendererState().getPlaylist().clear();
+		getUpnpControllerService().getRendererState().getPlaylist().addSongs(songs);
+		
+//		List<Song> songsFromPlaylist = getUpnpControllerService().getRendererState().getPlaylist().getSongs();
+//		List<SongDto> songsFromPlaylistDto = RestDeviceMapper.toSongDto(songsFromPlaylist);
 		
 		Integer[] paginationParams = getPaginationParams(request);
 		return ListPaginator.paginateList(songsDto, getUrl(request), paginationParams[0], paginationParams[1]);

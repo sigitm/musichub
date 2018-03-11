@@ -140,9 +140,9 @@ public class SimpleClause extends AbstractClause {
 		for (int i = 0; i < wildcardString.length(); ++i) {
 			char c = wildcardString.charAt(i);
 			if (c == '*') {
-				sb.append("\\w*");
+				sb.append(".*");
 			} else if (c == '?') {
-				sb.append("\\w");
+				sb.append(".");
 			} else if ("\\.[]{}()+-^$|".indexOf(c) >= 0) {
 				sb.append('\\');
 				sb.append(c);

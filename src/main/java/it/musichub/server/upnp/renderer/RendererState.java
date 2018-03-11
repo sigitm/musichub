@@ -25,6 +25,7 @@ import org.fourthline.cling.support.model.PositionInfo;
 import org.fourthline.cling.support.model.TransportInfo;
 import org.fourthline.cling.support.model.TransportState;
 
+import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.model.IPlaylistState;
 import it.musichub.server.upnp.model.PlaylistState;
 import it.musichub.server.upnp.model.TrackMetadata;
@@ -262,4 +263,11 @@ public class RendererState implements IRendererState {
 	{
 		return getTrackMetadata().artist;
 	}
+	
+	@Override
+	public Song getCurrentSong()
+	{
+		return getPlaylist().getCurrentSong();
+	}
+
 }

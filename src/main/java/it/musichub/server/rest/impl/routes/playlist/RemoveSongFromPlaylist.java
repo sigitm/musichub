@@ -1,8 +1,8 @@
-package it.musichub.server.rest.impl.routes.songs;
+package it.musichub.server.rest.impl.routes.playlist;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -16,28 +16,23 @@ import io.swagger.annotations.ApiResponses;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.rest.ListPaginator;
 import it.musichub.server.rest.impl.AbstractRoute;
+import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.RestDtoMapper;
 import it.musichub.server.rest.model.SongDto;
 import it.musichub.server.rest.model.SongDtoList;
-import it.musichub.server.search.model.Query;
 import spark.Request;
 import spark.Response;
 
 @Api
-@Path("/songs")
+@Path("/playlist/{id}")
 @Produces("application/json")
-public class GetSongs extends AbstractRoute {
+public class RemoveSongFromPlaylist extends AbstractRoute {
 
-	@GET
-	@ApiOperation(value = "Get songs", nickname = "GetSongs", tags = "songs")
+	@DELETE
+	@ApiOperation(value = "Remove song from playlist", nickname = "RemoveSongFromPlaylist", tags = "playlist")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "title", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "artist", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "albumTitle", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "integer", name = "year", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "string", name = "genre", paramType = "query"), //
-			@ApiImplicitParam(required = false, dataType = "integer", name = "rating", paramType = "query"), //
+			@ApiImplicitParam(required = true, dataType = "string", name = "id", paramType = "path") //
 	}) //
 	@ApiResponses(value = { //
 			@ApiResponse(code = 200, message = "Success", response = SongDtoList.class), //
@@ -46,10 +41,17 @@ public class GetSongs extends AbstractRoute {
 //			@ApiResponse(code = 404, message = "User not found", response = ApiError.class) //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
-		Query query = new Query();
-		query.addClause(encodeSongParams(request));
+		String id = request.params("id");
 		
-		List<Song> songs = getSearchService().search(query);
+		Song song = getUpnpControllerService().getRendererState().getPlaylist().getSongById(id);
+		if (song == null){
+			response.status(404);
+			return new ApiError(response.status(), "Song not found in playlist");
+		}
+		
+		getUpnpControllerService().getRendererState().getPlaylist().removeSong(song);
+		
+		List<Song> songs = getUpnpControllerService().getRendererState().getPlaylist().getSongs();
 		List<SongDto> songsDto = RestDtoMapper.toSongDto(songs);
 		
 		Integer[] paginationParams = getPaginationParams(request);

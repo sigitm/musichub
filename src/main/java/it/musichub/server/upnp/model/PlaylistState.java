@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import it.musichub.server.library.model.Folder;
 import it.musichub.server.library.model.Song;
-import it.musichub.server.upnp.renderer.IRendererState.State;
 
 public class PlaylistState implements IPlaylistState {
 
@@ -82,6 +81,19 @@ public class PlaylistState implements IPlaylistState {
 //		
 //		return songPointers.indexOf(pos);
 //	}
+	
+	@Override
+	public Song getSongById(String id){
+		if (id == null)
+			return null;
+		
+		for (Song song : songs){
+			if (id.equals(song.getId()))
+				return song;
+		}
+			
+		return null;
+	}
 	
 	@Override
 	public List<Song> getSongs(){

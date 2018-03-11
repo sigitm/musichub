@@ -14,6 +14,7 @@ public interface IPlaylistState {
 	
 	//read
 	Song getCurrentSong();
+	Song getSongById(String id);
 	List<Song> getSongs();
 	
 	//add

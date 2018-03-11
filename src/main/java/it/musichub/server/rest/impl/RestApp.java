@@ -1,7 +1,7 @@
 package it.musichub.server.rest.impl;
 
-import static spark.Spark.before;
 import static spark.Spark.after;
+import static spark.Spark.before;
 import static spark.Spark.get;
 import static spark.Spark.port;
 
@@ -24,8 +24,10 @@ host = "localhost:8080",
 /*consumes = { "application/json" }, //*/
 produces = { "application/json" }, //
 tags = {
+		@Tag(name = "health", description = "Health check"),
 		@Tag(name = "songs", description = "Search for songs"), 
-		@Tag(name = "devices", description = "Handle playback devices")
+		@Tag(name = "devices", description = "Handle playback devices"),
+		@Tag(name = "control", description = "Control selected device")
 		})
 public class RestApp {
 

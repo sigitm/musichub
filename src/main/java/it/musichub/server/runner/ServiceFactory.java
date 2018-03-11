@@ -23,8 +23,8 @@ import it.musichub.server.ex.ServiceDestroyException;
 import it.musichub.server.ex.ServiceInitException;
 import it.musichub.server.ex.ServiceStartException;
 import it.musichub.server.ex.ServiceStopException;
-import it.musichub.server.persistence.PersistenceServiceImpl;
 import it.musichub.server.persistence.PersistenceService;
+import it.musichub.server.persistence.PersistenceServiceImpl;
 import it.musichub.server.persistence.ex.FileNotFoundException;
 import it.musichub.server.persistence.ex.LoadException;
 import it.musichub.server.persistence.ex.SaveException;
@@ -48,8 +48,10 @@ public class ServiceFactory {
 		super();
 	}
 
-	private boolean init = false;//TODO sistemare; decidere se mantenere uno status
+	public enum ServiceFactoryState {initing, inited, starting, started, stopping, stopped, destroying, destroyed}
 	
+	private ServiceFactoryState state = null;
+
 	private final static Logger logger = Logger.getLogger(ServiceFactory.class);
 	
 	
@@ -69,6 +71,18 @@ public class ServiceFactory {
 			instance = new ServiceFactory(); 
 			
 		return instance;
+	}
+	
+	public String getVersion(){
+		return Constants.VERSION;	
+	}
+	
+	public ServiceFactoryState getState() {
+		return state;
+	}
+
+	private void setState(ServiceFactoryState state) {
+		this.state = state;
 	}
 	
 	public static IMusicHubService getServiceInstance(Service service){
@@ -176,7 +190,7 @@ public class ServiceFactory {
 			logger.fatal("MusicHub Server could not start.", e);
 			System.exit(1);
 		}
-		logger.info("MusicHub Server "+Constants.VERSION+" started.");
+		logger.info("MusicHub Server "+getVersion()+" started.");
 		
 		/*
 		 * shutdown hooks:
@@ -477,6 +491,7 @@ public class ServiceFactory {
 	
 	private void initServices() throws ServiceInitException {
 		logger.debug("Initializing services...");
+		setState(ServiceFactoryState.initing);
 		generateServices();
 	
 		for (Service service : getServiceList(false)){
@@ -490,11 +505,14 @@ public class ServiceFactory {
 			logger.debug("Service "+service.name()+" initialized");
 		}
 
+		setState(ServiceFactoryState.inited);
 		logger.debug("Services initialized");
 	}
 
 	private void startServices() throws ServiceStartException {
 		logger.debug("Starting services...");
+		setState(ServiceFactoryState.starting);
+		
 		for (Service service : getServiceList(false)){
 			logger.debug("Starting service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
@@ -506,11 +524,14 @@ public class ServiceFactory {
 			logger.debug("Service "+service.name()+" started");
 		}
 
+		setState(ServiceFactoryState.started);
 		logger.debug("Services started");
 	}
 	
 	private void stopServices() throws ServiceStopException {
 		logger.debug("Stopping services...");
+		setState(ServiceFactoryState.stopping);
+		
 		for (Service service : getServiceList(true)){
 			logger.debug("Stopping service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
@@ -522,11 +543,14 @@ public class ServiceFactory {
 			logger.debug("Service "+service.name()+" stopped");
 		}
 
+		setState(ServiceFactoryState.stopped);
 		logger.debug("Services stopped");
 	}
 	
 	private void destroyServices() throws ServiceDestroyException {
 		logger.debug("Destroying services...");
+		setState(ServiceFactoryState.destroying);
+		
 		for (Service service : getServiceList(true)){
 			logger.debug("Destroying service "+service.name()+"...");
 			ServiceDefinition serviceDefinition = getServiceMap().get(service);
@@ -538,6 +562,7 @@ public class ServiceFactory {
 			logger.debug("Service "+service.name()+" destroyed");
 		}
 
+		setState(ServiceFactoryState.destroyed);
 		logger.debug("Services destroyed");
 	}
 }

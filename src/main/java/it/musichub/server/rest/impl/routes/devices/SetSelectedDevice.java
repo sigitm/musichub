@@ -15,7 +15,7 @@ import io.swagger.annotations.ApiResponses;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.ApiError;
 import it.musichub.server.rest.model.DeviceDto;
-import it.musichub.server.rest.model.RestDeviceMapper;
+import it.musichub.server.rest.model.RestDtoMapper;
 import it.musichub.server.upnp.ex.DeviceNotFoundException;
 import it.musichub.server.upnp.model.Device;
 import spark.Request;
@@ -54,7 +54,7 @@ public class SetSelectedDevice extends AbstractRoute {
 			
 		getUpnpControllerService().setSelectedDevice(device);
 		
-		DeviceDto deviceDto = RestDeviceMapper.toDeviceDto(device);
+		DeviceDto deviceDto = RestDtoMapper.toDeviceDto(device);
 		
 		return deviceDto;
 	}

@@ -12,8 +12,9 @@ import org.modelmapper.PropertyMap;
 
 import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.model.Device;
+import it.musichub.server.upnp.renderer.IRendererState;
 
-public class RestDeviceMapper {
+public class RestDtoMapper {
 
 //	public static void main(String[] args) {
 //		try {
@@ -73,6 +74,60 @@ public class RestDeviceMapper {
 			modelsDto.add(toSongDto(model));
 		return modelsDto;
 	}
+	
+	public static ControlStatusDto toControlStatusDto(IRendererState rendererState){
+		ControlStatusDto controlStatus = new ControlStatusDto();
+		
+		String state = null;
+		Integer volume = null;
+		Boolean mute = null;
+		
+		SongDto currentSong = null;
+		String title = null;
+		String artist = null;
+		String duration = null;
+		String remainingDuration = null;
+		String position = null;
+		Integer elapsedPercent = null;
+		Long durationSeconds = null;
+		
+		
+		if (rendererState.getState() != null)
+			state = rendererState.getState().name();
+		if (rendererState.getVolume() != -1)
+			volume = rendererState.getVolume();
+		mute = rendererState.isMute();
+		
+		if (rendererState.getPlaylist() != null && rendererState.getPlaylist().getCurrentSong() != null)
+			currentSong = toSongDto(rendererState.getPlaylist().getCurrentSong());
+		title = rendererState.getTitle();
+		artist = rendererState.getArtist();
+		duration = rendererState.getDuration();
+		remainingDuration = rendererState.getRemainingDuration();
+		position = rendererState.getPosition();
+		elapsedPercent = rendererState.getElapsedPercent();
+		durationSeconds = rendererState.getDurationSeconds();
+		
+		
+		controlStatus.setState(state);
+		controlStatus.setVolume(volume);
+		controlStatus.setMute(mute);
+		
+		controlStatus.setCurrentSong(currentSong);
+		controlStatus.setTitle(title);
+		controlStatus.setArtist(artist);
+		controlStatus.setDuration(duration);
+		controlStatus.setRemainingDuration(remainingDuration);
+		controlStatus.setPosition(position);
+		controlStatus.setElapsedPercent(elapsedPercent);
+		controlStatus.setDurationSeconds(durationSeconds);
+		
+		return controlStatus;
+	}
+	
+	
+	
+	
 	
 	private static ModelMapper getModelMapper(){
 		ModelMapper modelMapper = new ModelMapper();

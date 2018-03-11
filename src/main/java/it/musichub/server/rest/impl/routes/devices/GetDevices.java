@@ -18,7 +18,7 @@ import it.musichub.server.rest.ListPaginator;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.rest.model.DeviceDto;
 import it.musichub.server.rest.model.DeviceDtoList;
-import it.musichub.server.rest.model.RestDeviceMapper;
+import it.musichub.server.rest.model.RestDtoMapper;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceRegistry.Service;
 import it.musichub.server.upnp.UpnpControllerService;
@@ -52,7 +52,7 @@ public class GetDevices extends AbstractRoute {
 		String paramOnline = request.queryParams("online");
 		
 		List<Device> devices = getUpnpControllerService().getDevices();
-		List<DeviceDto> devicesDto = RestDeviceMapper.toDeviceDto(devices);
+		List<DeviceDto> devicesDto = RestDtoMapper.toDeviceDto(devices);
 		
 		List<DeviceDto> filteredDevicesDto = new ArrayList<>();
 		for (DeviceDto device : devicesDto){
