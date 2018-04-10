@@ -13,13 +13,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import it.musichub.rest.model.ApiError;
+import it.musichub.rest.model.SongDto;
+import it.musichub.rest.model.SongDtoList;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.rest.ListPaginator;
 import it.musichub.server.rest.impl.AbstractRoute;
-import it.musichub.server.rest.model.ApiError;
-import it.musichub.server.rest.model.RestDtoMapper;
-import it.musichub.server.rest.model.SongDto;
-import it.musichub.server.rest.model.SongDtoList;
+import it.musichub.server.rest.impl.RestDtoMapper;
 import spark.Request;
 import spark.Response;
 

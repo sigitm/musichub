@@ -2,12 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.sigitm</groupId>
-	<artifactId>musichub</artifactId>
+	<groupId>org.sigitm.musichub</groupId>
+	<artifactId>musichub-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>musichub</name>
+	<name>musichub-server</name>
+	<description>Data model to interact with Music Hub rest service</description>
 	<url>http://maven.apache.org</url>
 	
 <!-- 	<parent> -->
@@ -54,6 +55,15 @@
         
 
 	<dependencies>
+	
+		<dependency>
+			<groupId>org.sigitm.musichub</groupId>
+			<artifactId>musichub-rest-model</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+
+	
 <!-- 		<dependency> -->
 <!-- 			<groupId>junit</groupId> -->
 <!-- 			<artifactId>junit</artifactId> -->

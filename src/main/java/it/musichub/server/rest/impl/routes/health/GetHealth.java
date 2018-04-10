@@ -10,8 +10,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import it.musichub.rest.model.HealthDto;
 import it.musichub.server.rest.impl.AbstractRoute;
-import it.musichub.server.rest.model.HealthDto;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceFactory.ServiceFactoryState;
 import spark.Request;
@@ -29,6 +29,7 @@ public class GetHealth extends AbstractRoute {
 	}) //
 	@ApiResponses(value = { //
 			@ApiResponse(code = 200, message = "Success", response = HealthDto.class), //
+			@ApiResponse(code = 500, message = "Error", response = HealthDto.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {

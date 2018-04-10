@@ -1,6 +1,6 @@
 package it.musichub.server.rest.impl.routes.control;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -18,12 +18,12 @@ import spark.Request;
 import spark.Response;
 
 @Api
-@Path("/control")
+@Path("/control/play")
 @Produces("application/json")
-public class GetStatus extends AbstractRoute {
+public class Play extends AbstractRoute {
 
-	@GET
-	@ApiOperation(value = "Get control status", nickname = "GetStatus", tags = "control")
+	@PUT
+	@ApiOperation(value = "Play", nickname = "Play", tags = "control")
 	@ApiImplicitParams({ //
 //			@ApiImplicitParam(required = true, dataType = "string", name = "auth", paramType = "header"), //
 	}) //
@@ -32,6 +32,8 @@ public class GetStatus extends AbstractRoute {
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
+		
+		getUpnpControllerService().getRendererCommand().play();
 		
 		IRendererState rs = getUpnpControllerService().getRendererState();
 		ControlStatusDto controlStatusDto = RestDtoMapper.toControlStatusDto(rs);

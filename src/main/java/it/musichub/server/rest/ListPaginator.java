@@ -6,11 +6,11 @@ import org.apache.http.client.utils.URIBuilder;
 
 import com.google.gson.Gson;
 
+import it.musichub.rest.model.utils.PaginatedList;
+import it.musichub.rest.model.utils.PagingCoordinates;
+import it.musichub.rest.model.utils.PagingLinks;
+import it.musichub.rest.model.utils.PagingSubList;
 import it.musichub.server.config.Constants;
-import it.musichub.server.rest.model.utils.PaginatedList;
-import it.musichub.server.rest.model.utils.PagingCoordinates;
-import it.musichub.server.rest.model.utils.PagingLinks;
-import it.musichub.server.rest.model.utils.PagingSubList;
  
 public class ListPaginator {
  

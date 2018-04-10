@@ -1,4 +1,4 @@
-package it.musichub.server.rest.model;
+package it.musichub.server.rest.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,9 @@ import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 
+import it.musichub.rest.model.ControlStatusDto;
+import it.musichub.rest.model.DeviceDto;
+import it.musichub.rest.model.SongDto;
 import it.musichub.server.library.model.Song;
 import it.musichub.server.upnp.model.Device;
 import it.musichub.server.upnp.renderer.IRendererState;
@@ -81,6 +84,8 @@ public class RestDtoMapper {
 		String state = null;
 		Integer volume = null;
 		Boolean mute = null;
+		Boolean shuffle = null;
+		String repeat = null;
 		
 		SongDto currentSong = null;
 		String title = null;
@@ -97,6 +102,8 @@ public class RestDtoMapper {
 		if (rendererState.getVolume() != -1)
 			volume = rendererState.getVolume();
 		mute = rendererState.isMute();
+		shuffle = rendererState.getPlaylist().getShuffle();
+		repeat = rendererState.getPlaylist().getRepeat().name();
 		
 		if (rendererState.getPlaylist() != null && rendererState.getPlaylist().getCurrentSong() != null)
 			currentSong = toSongDto(rendererState.getPlaylist().getCurrentSong());
