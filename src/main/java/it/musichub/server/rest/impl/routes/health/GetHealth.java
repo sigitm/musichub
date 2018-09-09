@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import it.musichub.rest.model.ApiError;
 import it.musichub.rest.model.HealthDto;
 import it.musichub.server.rest.impl.AbstractRoute;
 import it.musichub.server.runner.ServiceFactory;
@@ -29,7 +30,7 @@ public class GetHealth extends AbstractRoute {
 	}) //
 	@ApiResponses(value = { //
 			@ApiResponse(code = 200, message = "Success", response = HealthDto.class), //
-			@ApiResponse(code = 500, message = "Error", response = HealthDto.class), //
+			@ApiResponse(code = 500, message = "Error", response = ApiError.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
@@ -38,8 +39,10 @@ public class GetHealth extends AbstractRoute {
 		String version = sf.getVersion();
 		String state = sf.getState() != null ? sf.getState().name() : null;
 		
-		if (state == null || !ServiceFactoryState.started.name().equals(state))
+		if (state == null || !ServiceFactoryState.started.name().equals(state)){
 			response.status(500);
+			return new ApiError(response.status(), "Server is in state "+state);
+		}
 		
 		return new HealthDto(version, state);
 	}

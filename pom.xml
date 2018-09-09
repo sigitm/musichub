@@ -8,7 +8,7 @@
 	<packaging>jar</packaging>
 
 	<name>musichub-server</name>
-	<description>Data model to interact with Music Hub rest service</description>
+	<description>Music Hub server</description>
 	<url>http://maven.apache.org</url>
 	
 <!-- 	<parent> -->

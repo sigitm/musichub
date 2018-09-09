@@ -38,7 +38,7 @@ public class RemoveSongFromPlaylist extends AbstractRoute {
 			@ApiResponse(code = 200, message = "Success", response = SongDtoList.class), //
 //			@ApiResponse(code = 400, message = "Invalid input data", response = ApiError.class), //
 //			@ApiResponse(code = 401, message = "Unauthorized", response = ApiError.class), //
-//			@ApiResponse(code = 404, message = "User not found", response = ApiError.class) //
+			@ApiResponse(code = 404, message = "Song not found in playlist", response = ApiError.class) //
 	})
 	public Object handle(@ApiParam(hidden = true) Request request, @ApiParam(hidden = true) Response response) throws Exception {
 		String id = request.params("id");
