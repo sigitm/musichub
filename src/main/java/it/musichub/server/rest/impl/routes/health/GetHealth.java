@@ -11,10 +11,13 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import it.musichub.rest.model.ApiError;
+import it.musichub.rest.model.DeviceDto;
 import it.musichub.rest.model.HealthDto;
 import it.musichub.server.rest.impl.AbstractRoute;
+import it.musichub.server.rest.impl.RestDtoMapper;
 import it.musichub.server.runner.ServiceFactory;
 import it.musichub.server.runner.ServiceFactory.ServiceFactoryState;
+import it.musichub.server.upnp.model.Device;
 import spark.Request;
 import spark.Response;
 
@@ -44,7 +47,13 @@ public class GetHealth extends AbstractRoute {
 			return new ApiError(response.status(), "Server is in state "+state);
 		}
 		
-		return new HealthDto(version, state);
+		DeviceDto deviceDto = null;
+		Device device = getUpnpControllerService().getSelectedDevice();
+		if (device != null)
+			deviceDto = RestDtoMapper.toDeviceDto(device);
+			
+		
+		return new HealthDto(version, state, deviceDto);
 	}
 	
 }
